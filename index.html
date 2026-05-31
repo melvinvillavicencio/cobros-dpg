@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cobro de Traslados · DPG</title>
+<style>
+  :root{
+    --teal:#3FBFB8;          /* agua / acento principal */
+    --teal-dark:#2A9D96;
+    --teal-soft:#E6F7F6;
+    --teal-chip:#9FE0DB;
+    --magenta:#E63462;       /* botón Book Now */
+    --magenta-dark:#C92651;
+    --ink:#1F2A33;           /* títulos */
+    --slate:#5A6B76;         /* texto secundario */
+    --line:#ECECEC;
+    --amber:#F5A623;         /* estrellas / iconos */
+    --amber-soft:#FDEBCF;
+    --card:#FFFFFF;
+    --bg:#F4F6F7;
+    --green:#2BA84A;
+    --green-soft:#E4F5E8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+
+  /* Barra de pestañas */
+  .tabbar{display:flex;gap:8px;margin-bottom:18px;border-bottom:2px solid var(--line);padding-bottom:0}
+  .tab-btn{
+    appearance:none;border:none;background:transparent;cursor:pointer;font-family:inherit;
+    font-size:14.5px;font-weight:700;color:#8A8FA3;padding:12px 20px;border-radius:12px 12px 0 0;
+    position:relative;transition:color .15s,background .15s;display:inline-flex;align-items:center;gap:9px;
+  }
+  .tab-btn .tab-ic{display:inline-flex;align-items:center;justify-content:center}
+  .tab-btn:hover{color:var(--magenta-dark);background:rgba(230,52,98,.05)}
+  .tab-btn.active{color:var(--magenta-dark)}
+  .tab-btn.active::after{content:"";position:absolute;left:14px;right:14px;bottom:-2px;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,var(--magenta),var(--magenta-dark))}
+  .tab-count{font-size:11.5px;font-weight:800;background:var(--teal-soft);color:var(--teal-dark);padding:2px 9px;border-radius:20px}
+  .tab-btn.active .tab-count{background:#FCE3EA;color:var(--magenta-dark)}
+  .tabpage{display:none}
+  .tabpage.active{display:block}
+
+  /* Header */
+  header.top{
+    background:linear-gradient(135deg,var(--magenta) 0%,var(--magenta-dark) 100%);
+    border-radius:22px;padding:26px 28px;color:#fff;
+    box-shadow:0 10px 30px rgba(230,52,98,.28);
+    margin-bottom:22px;position:relative;overflow:hidden;
+  }
+  header.top::after{
+    content:"";position:absolute;right:-40px;top:-40px;
+    width:180px;height:180px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .brand .badge{
+    background:rgba(255,255,255,.22);backdrop-filter:blur(4px);
+    padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.5px;
+  }
+  header.top h1{font-size:24px;font-weight:800;letter-spacing:-.3px}
+  .data-actions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0}
+  .act-btn{
+    display:inline-flex;align-items:center;gap:10px;
+    border-radius:13px;padding:11px 18px;font-size:13.5px;font-weight:700;
+    font-family:inherit;cursor:pointer;transition:transform .12s,box-shadow .15s,filter .15s;
+    border:none;
+  }
+  .act-btn:active{transform:scale(.97)}
+  .act-ic{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px}
+  .act-btn.import{background:var(--teal-soft);color:var(--teal-dark);border:1.5px solid var(--teal-chip)}
+  .act-btn.import .act-ic{background:var(--teal);color:#fff}
+  .act-btn.import:hover{box-shadow:0 4px 14px rgba(63,191,184,.30);filter:brightness(1.02)}
+  .act-btn.export{background:linear-gradient(135deg,var(--magenta) 0%,var(--magenta-dark) 100%);color:#fff;box-shadow:0 4px 14px rgba(230,52,98,.28)}
+  .act-btn.export .act-ic{background:rgba(255,255,255,.22)}
+  .act-btn.export:hover{box-shadow:0 6px 20px rgba(230,52,98,.40)}
+  header.top p{font-size:14px;opacity:.92;margin-top:4px}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+  .kpi{
+    background:var(--card);border-radius:18px;padding:18px 20px;
+    box-shadow:0 4px 16px rgba(31,42,51,.06);
+    border:1px solid var(--line);
+  }
+  .kpi .ic{
+    width:38px;height:38px;border-radius:12px;background:var(--teal-soft);
+    display:flex;align-items:center;justify-content:center;margin-bottom:12px;
+  }
+  .kpi .ic.amber{background:var(--amber-soft)}
+  .kpi .ic.green{background:var(--green-soft)}
+  .kpi .ic.magenta{background:#FCE3EA}
+  .kpi .ic.blue{background:#E3ECFD}
+  .kpi .lbl{font-size:12.5px;color:var(--slate);font-weight:600;margin-bottom:4px}
+  .kpi .val{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .kpi .sub{font-size:12px;color:var(--slate);margin-top:2px}
+  .kpi-deposit{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:3px}
+  .dep-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#2F6BE0}
+  .dep-amts{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
+  .dep-val{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+  .dep-sep{color:var(--slate);font-weight:700}
+  .dep-dop{font-size:15px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:2px 9px;border-radius:7px}
+  .dep-warn{color:#C2671A;font-size:13px;margin-left:2px;cursor:help}
+
+  /* Toolbar */
+  .toolbar{
+    background:var(--card);border-radius:18px;padding:14px 16px;
+    box-shadow:0 4px 16px rgba(31,42,51,.06);border:1px solid var(--line);
+    display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px;
+  }
+  .search{flex:1;min-width:220px;position:relative}
+  .search input{
+    width:100%;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 14px 11px 40px;font-size:14px;font-family:inherit;color:var(--ink);
+    outline:none;transition:border-color .15s;
+  }
+  .search input:focus{border-color:var(--teal)}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--slate)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .chip-btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:20px;
+    padding:9px 16px;font-size:13px;font-weight:600;color:var(--slate);
+    cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .chip-btn:hover{border-color:var(--teal)}
+  .chip-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
+  .bulkbar{
+    display:none;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--ink);color:#fff;border-radius:16px;padding:12px 18px;margin-bottom:16px;
+    box-shadow:0 6px 20px rgba(31,42,51,.18);
+  }
+  .bulkbar.show{display:flex}
+  .bulk-all{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;cursor:pointer}
+  .bulk-all input{width:18px;height:18px;accent-color:var(--magenta);cursor:pointer}
+  .bulk-count{font-size:13px;font-weight:700;color:var(--teal-chip);background:rgba(255,255,255,.10);padding:5px 12px;border-radius:20px}
+  .bulk-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .bulk-btn{border:none;border-radius:11px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter .15s}
+  .bulk-btn:hover{filter:brightness(1.08)}
+  .bulk-btn.pay{background:var(--magenta);color:#fff}
+  .bulk-btn.unpay{background:var(--amber);color:#3a2a00}
+  .bulk-btn.clear{background:rgba(255,255,255,.16);color:#fff}
+  .filterrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%}
+  .datefilter{
+    display:flex;align-items:center;gap:10px;flex-wrap:nowrap;flex:1;min-width:0;
+    background:var(--teal-soft);border:2px solid var(--teal-chip);border-radius:14px;
+    padding:10px 14px;box-shadow:0 3px 12px rgba(63,191,184,.15);position:relative;
+  }
+  .df-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:800;color:var(--teal-dark);white-space:nowrap}
+  .df-sep{color:var(--teal-dark);font-weight:700}
+  .datefilter input[type=date]{
+    border:1.5px solid var(--teal-chip);border-radius:11px;padding:9px 11px;background:#fff;
+    font-family:inherit;font-size:13px;color:var(--ink);outline:none;transition:border-color .15s;
+  }
+  .datefilter input[type=date]:focus{border-color:var(--teal)}
+  .df-search{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 2px 8px rgba(63,191,184,.35)}
+  .df-search:hover{background:var(--teal-dark);border-color:var(--teal-dark)}
+  .df-clear{display:none;background:#fff}
+  .df-clear.show{display:inline-block}
+
+  /* Group card */
+  .group{
+    background:var(--card);border-radius:18px;margin-bottom:16px;
+    box-shadow:0 4px 16px rgba(31,42,51,.06);border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .group-head{
+    display:flex;align-items:center;gap:14px;padding:16px 20px;
+    background:linear-gradient(90deg,var(--teal-soft) 0%,#fff 60%);
+    transition:background .15s;
+  }
+  .group-head:hover{background:linear-gradient(90deg,#d8f3f1 0%,#fff 60%)}
+  .sel-chk{width:19px;height:19px;accent-color:var(--magenta);cursor:pointer;flex-shrink:0;margin:0}
+  .head-id{display:flex;align-items:center;gap:13px}
+  .dp-logo{width:30px;height:38px;flex-shrink:0;display:block}
+  .exc-head-row{display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+  .exc-head-logo{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.92);box-shadow:0 4px 14px rgba(0,0,0,.12);flex-shrink:0}
+  .exc-head-logo svg{width:26px;height:33px;display:block}
+  .caret{transition:transform .2s;color:var(--teal-dark);flex-shrink:0}
+  .group.open .caret{transform:rotate(90deg)}
+  .fenix-name-main{font-weight:800;font-size:16.5px;letter-spacing:-.3px;color:var(--ink);line-height:1.2}
+  .fenix-id-small{font-weight:700;color:var(--teal-dark)}
+  .fenix-meta{font-size:12.5px;color:var(--slate);margin-top:3px}
+  .group-head .right{margin-left:auto;display:flex;align-items:center;gap:16px}
+  .group-total,.group-cobro{text-align:right}
+  .group-total .lbl,.group-cobro .lbl{font-size:11px;color:var(--slate);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .group-total .amt{font-size:18px;font-weight:800;color:var(--ink)}
+  .amt-usd{font-size:16px;font-weight:800;color:var(--ink)}
+  .amt-sep{color:var(--slate);font-weight:700}
+  .amt-row{display:flex;align-items:baseline;gap:8px;justify-content:flex-end}
+  .group-total .amt-dop{font-size:13px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:2px 8px;border-radius:7px}
+  .group-cobro .cdate{font-size:15px;font-weight:700;color:var(--teal-dark);font-variant-numeric:tabular-nums}
+  .stat-pill{
+    padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;
+  }
+  .stat-pill.pending{background:var(--amber-soft);color:#9A6A00}
+  .stat-pill.paid{background:var(--green-soft);color:var(--green)}
+  .stat-pill.partial{background:#FCE3EA;color:var(--magenta-dark)}
+  .stat-pill.declined{background:#FBE0E0;color:#B42318}
+  .decline-btn{
+    appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;
+    font-family:inherit;font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:11px;white-space:nowrap;transition:background .12s,filter .12s;
+  }
+  .decline-btn:hover{background:#FBE0E0}
+  .decline-btn.active{background:#B42318;border-color:#B42318;color:#fff}
+  .decline-btn.active:hover{filter:brightness(1.08)}
+  /* notas y comentario de declinación */
+  .notes-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:#FBFBFD}
+  .notes-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:800;color:var(--slate);white-space:nowrap}
+  .notes-input{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13.5px;color:var(--ink);background:#fff}
+  .notes-input:focus{border-color:var(--teal);outline:none}
+  .notes-save{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:10px;background:var(--teal-soft);color:var(--teal-dark);border:1.5px solid var(--teal-chip);white-space:nowrap}
+  .notes-save:hover{background:var(--teal);color:#fff}
+  .decline-box{padding:14px 16px;border-bottom:1px solid var(--line);background:#FFF5F5}
+  .decline-head{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#B42318;margin-bottom:10px}
+  .decline-input{width:100%;border:1.5px solid #E5A0A0;border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13.5px;color:var(--ink);background:#fff;box-sizing:border-box}
+  .decline-input:focus{border-color:#B42318;outline:none}
+  .decline-save{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:10px;background:#B42318;color:#fff;margin-top:9px}
+  .decline-save:hover{filter:brightness(1.08)}
+  .decline-shown{margin-top:10px;font-size:13.5px;color:#7A1610;font-style:italic;background:#fff;border-left:3px solid #B42318;padding:8px 12px;border-radius:0 8px 8px 0}
+
+  /* table */
+  .group-body{display:none;border-top:1px solid var(--line)}
+  .group.open .group-body{display:block}
+  table{width:100%;border-collapse:collapse}
+  thead th{
+    font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--slate);
+    font-weight:700;text-align:left;padding:11px 14px;background:#FAFBFB;
+    border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:13px 14px;font-size:13.5px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.paid-row{background:var(--green-soft)}
+  .mod{
+    display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;letter-spacing:.3px;
+  }
+  .mod.IN{background:var(--teal-soft);color:var(--teal-dark)}
+  .mod.OUT{background:#FFF1E8;color:#C2671A}
+  .neta{font-weight:700;font-variant-numeric:tabular-nums}
+  .dop{font-weight:700;color:#2F6BE0;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .dop-none{font-weight:700;color:#C2671A;background:#FFF1E8;padding:2px 8px;border-radius:7px;font-size:12px}
+  .dop-rate{font-size:10px;font-weight:600;color:var(--slate);margin-left:6px}
+  .paylink{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#F7FAFF;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .paylink-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#2F6BE0;white-space:nowrap}
+  .paylink input{flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font-family:inherit;font-size:13px;color:var(--ink);outline:none}
+  .paylink input:focus{border-color:#2F6BE0}
+  .paylink-open{font-size:12px;font-weight:700;color:#fff;background:#2F6BE0;padding:8px 14px;border-radius:10px;text-decoration:none;white-space:nowrap}
+  .paylink-save{font-size:12px;font-weight:700;color:#fff;background:var(--teal);border:none;padding:8px 16px;border-radius:10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s}
+  .paylink-save:hover{background:var(--teal-dark)}
+  .paylink-save:active{transform:scale(.96)}
+  .paylink-ok{font-size:12px;font-weight:700;color:var(--green);background:var(--green-soft);padding:6px 11px;border-radius:8px;white-space:nowrap}
+  .paylink-dop{margin-left:auto;font-size:15px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:6px 14px;border-radius:9px;white-space:nowrap}
+  .dop-cur{user-select:none;-webkit-user-select:none;margin-right:10px;opacity:.85}
+  .dop-amt{user-select:all;-webkit-user-select:all}
+  .paylink-open:hover{filter:brightness(1.08)}
+  /* Panel de tasas */
+  .rates{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:16px;box-shadow:0 4px 16px rgba(31,42,51,.06);overflow:hidden}
+  .rates-head{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer}
+  .rates-caret{transition:transform .2s;color:#2F6BE0;flex-shrink:0}
+  .rates.open .rates-caret{transform:rotate(90deg)}
+  .rates-title{font-weight:800;font-size:14px;color:var(--ink)}
+  .rates-info{margin-left:auto;font-size:12px;color:var(--slate)}
+  .rates-info b{color:#2F6BE0}
+  .rates-body{display:none;padding:0 18px 16px;border-top:1px solid var(--line)}
+  .rates.open .rates-body{display:block}
+  .rate-add{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0}
+  .rate-add input{border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13px;color:var(--ink);outline:none}
+  .rate-add input:focus{border-color:var(--teal)}
+  .rates-list{display:flex;flex-wrap:wrap;gap:8px}
+  .rates-empty{font-size:13px;color:var(--slate)}
+  .rate-item{display:flex;align-items:center;gap:8px;background:#E3ECFD;border:1px solid #C7D9F8;border-radius:20px;padding:6px 8px 6px 14px;font-size:13px}
+  .rate-date{font-weight:600;color:var(--ink)}
+  .rate-num{font-weight:800;color:#2F6BE0}
+  .rate-del{border:none;background:rgba(47,107,224,.15);color:#2F6BE0;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:11px;font-weight:700;line-height:1}
+  .rate-del:hover{background:rgba(47,107,224,.3)}
+  .empty{text-align:center;padding:50px 20px;color:var(--slate)}
+  .fecha-cobro input{
+    border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;
+    font-family:inherit;font-size:13px;color:var(--ink);outline:none;width:150px;
+  }
+  .fecha-cobro input:focus{border-color:var(--teal)}
+  .fecha-cobro{white-space:nowrap}
+  .tag-cobro{margin-left:7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:3px 7px;border-radius:7px;vertical-align:middle}
+  .tag-cobro.auto{background:var(--teal-soft);color:var(--teal-dark)}
+  .tag-cobro.man{background:var(--amber-soft);color:#9A6A00}
+  .pay-btn{
+    border:none;border-radius:11px;padding:9px 18px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:inherit;background:var(--magenta);color:#fff;
+    transition:transform .1s,background .15s;white-space:nowrap;
+  }
+  .pay-btn:hover{background:var(--magenta-dark)}
+  .pay-btn:active{transform:scale(.96)}
+  .pay-btn.done{background:var(--green);}
+  .pay-btn.done:hover{background:#229040}
+
+  .pager{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:14px 18px;margin-top:18px;box-shadow:0 4px 16px rgba(31,42,51,.06);
+  }
+  .pg-info{font-size:13px;color:var(--slate)}
+  .pg-info b{color:var(--ink)}
+  .pg-nav{display:flex;align-items:center;gap:6px}
+  .pg-btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:10px;
+    min-width:36px;height:36px;font-size:15px;font-weight:700;color:var(--ink);
+    cursor:pointer;font-family:inherit;transition:all .15s;
+  }
+  .pg-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal-dark)}
+  .pg-btn:disabled{opacity:.4;cursor:default}
+  .pg-cur{font-size:13px;font-weight:700;color:var(--ink);padding:0 8px}
+  .pg-per{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--slate)}
+  .pg-per select{
+    border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;
+    font-family:inherit;font-size:13px;color:var(--ink);cursor:pointer;outline:none;background:#fff;
+  }
+  .pg-per select:focus{border-color:var(--teal)}
+  footer{text-align:center;color:var(--slate);font-size:12px;margin-top:30px}
+
+  @media(max-width:680px){
+    .group-head .right{flex-direction:column;align-items:flex-end;gap:6px}
+    thead{display:none}
+    tbody td{display:flex;justify-content:space-between;padding:9px 16px;border:none}
+    tbody td::before{content:attr(data-l);font-weight:700;color:var(--slate);font-size:11px;text-transform:uppercase}
+    tbody tr{display:block;border-bottom:1px solid var(--line);padding:8px 0}
+    .fecha-cobro input{width:auto}
+    .datefilter{flex-wrap:wrap;flex-basis:100%}
+    .datefilter input[type=date]{flex:1;min-width:120px}
+    .data-actions{width:100%}
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 60 76" xmlns="http://www.w3.org/2000/svg" aria-label="Despegar">
+        <path d="M2 2 H30 a28 36 0 0 1 0 72 H2 Z" fill="#C9B6FF"/>
+        <path d="M2 2 H16 a28 36 0 0 1 0 72 H2 Z" fill="#5B12E0"/>
+      </svg>
+    </div>
+    <h2>Cobros DPG</h2>
+    <p class="login-sub">Inicia sesión para continuar</p>
+    <input type="email" id="loginEmail" placeholder="Correo" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none">
+<div class="sessionbar">
+  <span class="session-sync" id="syncStatus">Conectado</span>
+  <span class="session-user" id="sessionUser"></span>
+  <button class="session-logout" onclick="doLogout()">Cerrar sesión</button>
+</div>
+<div class="wrap">
+  <div class="tabbar">
+    <button class="tab-btn active" data-tab="traslados" onclick="switchTab('traslados')">
+      <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 17h2l1-5h12l1 5h2M5 12l1.5-5h11L19 12M7 17v2M17 17v2"/><circle cx="7.5" cy="14.5" r="1"/><circle cx="16.5" cy="14.5" r="1"/></svg></span>
+      Traslados <span class="tab-count" id="tabCountTras">0</span>
+    </button>
+    <button class="tab-btn" data-tab="excursiones" onclick="switchTab('excursiones')">
+      <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/></svg></span>
+      Excursiones <span class="tab-count" id="tabCountExc">0</span>
+    </button>
+  </div>
+
+  <div class="tabpage active" id="page-traslados">
+  <header class="top">
+    <div class="exc-head-row">
+      <span class="exc-head-logo">
+        <svg viewBox="0 0 60 76" xmlns="http://www.w3.org/2000/svg" aria-label="Despegar">
+          <path d="M2 2 H30 a28 36 0 0 1 0 72 H2 Z" fill="#C9B6FF"/>
+          <path d="M2 2 H16 a28 36 0 0 1 0 72 H2 Z" fill="#5B12E0"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Procesamiento de Cobro de Traslados</h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="q" placeholder="Buscar por ID Fénix, ID Reserva o titular…">
+    </div>
+    <div class="filters" id="filters">
+      <button class="chip-btn active" data-f="all">Todas</button>
+      <button class="chip-btn" data-f="pending">Pendientes</button>
+      <button class="chip-btn" data-f="paid">Pagadas</button>
+    </div>
+    <div class="filterrow">
+    <div class="datefilter">
+      <span class="df-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Fecha de cobro</span>
+      <input type="date" id="dFrom">
+      <span class="df-sep">→</span>
+      <input type="date" id="dTo">
+      <button class="chip-btn df-search" id="dSearch" onclick="setRange()">Buscar</button>
+      <button class="chip-btn df-clear" id="dClear" onclick="clearRange()">Limpiar</button>
+    </div>
+    <div class="data-actions">
+      <button class="act-btn import" onclick="document.getElementById('importFile').click()">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 21h14"/></svg></span>
+        Importar Excel
+      </button>
+      <button class="act-btn export" onclick="exportXlsx()">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg></span>
+        Exportar a Sheets
+      </button>
+      <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this.files[0])">
+    </div>
+    </div>
+  </div>
+
+  <div class="bulkbar" id="bulkbar">
+    <label class="bulk-all"><input type="checkbox" id="selAll" onclick="toggleSelectAll(this.checked)"> Seleccionar todo (vista filtrada)</label>
+    <span class="bulk-count" id="bulkCount">0 seleccionados</span>
+    <div class="bulk-actions">
+      <button class="bulk-btn pay" onclick="bulkPay(true)">Marcar pagado</button>
+      <button class="bulk-btn unpay" onclick="bulkPay(false)">Marcar pendiente</button>
+      <button class="bulk-btn clear" onclick="clearSelection()">Limpiar selección</button>
+    </div>
+  </div>
+
+  <div class="rates" id="rates">
+    <div class="rates-head" onclick="document.getElementById('rates').classList.toggle('open')">
+      <svg class="rates-caret" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      <span class="rates-title">Tasas de cambio por día (USD → DOP)</span>
+      <span class="rates-info">Si una fecha no tiene tasa, no se calcula el DOP</span>
+    </div>
+    <div class="rates-body">
+      <div class="rate-add">
+        <input type="date" id="rateDate">
+        <input type="number" step="0.01" min="0" id="rateVal" placeholder="Tasa (ej. 58.60)">
+        <button class="chip-btn df-search" onclick="addRate()">Guardar tasa</button>
+      </div>
+      <div id="ratesList" class="rates-list"></div>
+    </div>
+  </div>
+
+  <div id="list"></div>
+  <div id="pager" class="pager"></div>
+  <style>
+  .im-overlay{position:fixed;inset:0;background:rgba(20,20,30,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  .im-overlay.show{display:flex}
+  .im-box{background:#fff;border-radius:16px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+  .im-head{background:linear-gradient(135deg,var(--magenta),var(--magenta-dark));color:#fff;font-weight:700;font-size:18px;padding:18px 22px}
+  .im-file{padding:14px 22px 4px;color:var(--teal-dark);font-weight:600;font-size:14px;word-break:break-all}
+  #imBody{padding:8px 22px 4px}
+  .im-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #eee;font-size:15px}
+  .im-row b{font-size:16px}
+  .im-row.im-new{color:var(--teal-dark)}
+  .im-row.im-new b{color:var(--teal-dark);font-size:20px}
+  .im-note{background:#FFF6E6;border:1px solid #F5D38A;color:#8a5a00;border-radius:10px;padding:10px 12px;font-size:13px;margin:14px 0 4px;line-height:1.45}
+  .im-actions{display:flex;gap:10px;justify-content:flex-end;padding:16px 22px 20px}
+  .im-cancel{background:#f0f0f3;color:#444;border:none;border-radius:10px;padding:11px 18px;font-weight:600;cursor:pointer}
+  .im-ok{background:linear-gradient(135deg,var(--magenta),var(--magenta-dark));color:#fff;border:none;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer}
+  .im-ok:disabled{opacity:.5;cursor:not-allowed}
+  .vsub-main{display:block}
+  .vsub-li{display:block;padding-left:14px;position:relative;font-size:12px;opacity:.85;margin-top:2px}
+  .vsub-li::before{content:'•';position:absolute;left:2px;color:var(--teal-dark)}
+  /* Excursiones: tabla de lista plana */
+  .exc-list .group{cursor:default}
+  .exc-table{width:100%;border-collapse:collapse}
+  .exc-table thead th{background:var(--teal-soft);color:var(--teal-dark);font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:800;text-align:left;padding:11px 9px;border-bottom:2px solid var(--teal-chip)}
+  .exc-table tbody td{padding:11px 9px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+  .exc-table tbody tr:hover{background:var(--teal-soft)}
+  .exc-table tbody tr.paid-row{background:var(--green-soft)}
+  .exc-table tbody tr.paid-row:hover{background:#d6efdd}
+  .exc-chk{width:18px;height:18px;accent-color:var(--magenta);cursor:pointer;margin:0}
+  .exc-titular{font-weight:700;color:var(--ink)}
+  .exc-act{font-size:12.5px;color:#6b7080}
+  .exc-res{font-weight:700;color:var(--teal-dark);font-variant-numeric:tabular-nums}
+  .exc-cobro-input{border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;font-family:inherit;font-size:13px;color:var(--ink);background:#fff}
+  .exc-cobro-input:focus{border-color:var(--teal);outline:none}
+  .exc-origin{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:8px;margin-left:7px}
+  .exc-origin.auto{background:var(--teal-soft);color:var(--teal-dark)}
+  .exc-origin.manual{background:var(--amber-soft);color:#9A6A00}
+  .exc-net{font-weight:700;font-variant-numeric:tabular-nums}
+  .exc-dop{color:#2F6BE0;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .exc-dop .dop-none{color:var(--amber);font-weight:700}
+  .exc-paybtn{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;padding:7px 13px;border-radius:9px;background:var(--magenta);color:#fff;transition:filter .12s}
+  .exc-paybtn.done{background:var(--green)}
+  .exc-paybtn:hover{filter:brightness(1.06)}
+  .exc-linkwrap{display:flex;align-items:center;gap:5px}
+  .exc-link-input{width:110px;min-width:80px;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff}
+  .exc-link-input:focus{border-color:var(--teal);outline:none}
+  .exc-link-save{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:11px;padding:7px 9px;border-radius:9px;background:var(--teal-soft);color:var(--teal-dark);border:1.5px solid var(--teal-chip);white-space:nowrap}
+  .exc-link-save:hover{background:var(--teal);color:#fff}
+  .exc-link-open{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--magenta);color:#fff;text-decoration:none;flex-shrink:0}
+  .exc-link-open:hover{filter:brightness(1.08)}
+  .exc-noteswrap{display:flex;align-items:center;gap:5px}
+  .exc-notes-input{width:90px;min-width:70px;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff}
+  .exc-notes-input:focus{border-color:var(--teal);outline:none}
+  .exc-notes-save{appearance:none;border:1.5px solid var(--teal-chip);cursor:pointer;font-family:inherit;font-weight:800;font-size:13px;width:30px;height:30px;border-radius:9px;background:var(--teal-soft);color:var(--teal-dark);flex-shrink:0}
+  .exc-notes-save:hover{background:var(--teal);color:#fff}
+  .exc-btns{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+  .exc-declbtn{appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;font-family:inherit;font-weight:700;font-size:12px;padding:6px 11px;border-radius:9px;white-space:nowrap;transition:background .12s,filter .12s}
+  .exc-declbtn:hover{background:#FBE0E0}
+  .exc-declbtn.active{background:#B42318;border-color:#B42318;color:#fff}
+  .exc-declbtn.active:hover{filter:brightness(1.08)}
+  .exc-decl-pill{display:inline-block;margin-left:8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;background:#FBE0E0;color:#B42318;padding:2px 7px;border-radius:8px;vertical-align:middle}
+  tr.declined-row td{background:#FFF7F7}
+  tr.exc-declrow td{background:#FFF5F5;border-bottom:1px solid var(--line);padding:0 14px 12px}
+  .exc-declbox{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-top:2px}
+  .exc-declhead{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:#B42318;white-space:nowrap}
+  .exc-declinput{flex:1;min-width:200px;border:1.5px solid #E5A0A0;border-radius:9px;padding:7px 10px;font-family:inherit;font-size:13px;color:var(--ink);background:#fff}
+  .exc-declinput:focus{border-color:#B42318;outline:none}
+  .exc-declsave{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:12px;padding:7px 13px;border-radius:9px;background:#B42318;color:#fff;white-space:nowrap}
+  .exc-declsave:hover{filter:brightness(1.08)}
+  .exc-declshown{font-size:13px;color:#7A1610;font-style:italic;background:#fff;border-left:3px solid #B42318;padding:6px 11px;border-radius:0 8px 8px 0;width:100%}
+  .exc-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .exc-table{min-width:1080px}
+  /* Login */
+  .login-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F7F6,#F4F1FF);padding:20px}
+  .login-card{background:#fff;border-radius:22px;box-shadow:0 20px 60px rgba(31,42,51,.18);padding:36px 32px;width:100%;max-width:380px;text-align:center}
+  .login-logo{width:64px;height:64px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;background:#F4F1FF;border-radius:18px}
+  .login-logo svg{width:30px;height:38px}
+  .login-card h2{margin:0 0 4px;font-size:23px;color:var(--ink)}
+  .login-sub{margin:0 0 22px;color:var(--slate);font-size:14px}
+  .login-card input{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;font-family:inherit;font-size:15px;margin-bottom:12px;color:var(--ink)}
+  .login-card input:focus{border-color:var(--teal);outline:none}
+  .login-btn{width:100%;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--magenta),var(--magenta-dark));color:#fff;margin-top:4px;transition:filter .12s}
+  .login-btn:hover{filter:brightness(1.06)}
+  .login-btn:disabled{opacity:.6;cursor:default}
+  .login-err{color:#B42318;font-size:13.5px;margin-top:14px;min-height:18px;font-weight:600}
+  /* Barra de sesión */
+  .sessionbar{max-width:1180px;margin:0 auto 14px;display:flex;align-items:center;gap:12px;justify-content:flex-end;font-size:13px}
+  .session-sync{display:inline-flex;align-items:center;gap:6px;color:var(--teal-dark);font-weight:700}
+  .session-sync::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .session-sync.saving{color:var(--amber)}
+  .session-sync.saving::before{background:var(--amber)}
+  .session-sync.error{color:#B42318}
+  .session-sync.error::before{background:#B42318}
+  .session-user{color:var(--slate)}
+  .session-logout{appearance:none;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;padding:7px 13px;border-radius:9px;color:var(--ink)}
+  .session-logout:hover{background:#F4F4F6}
+  </style>
+  </div><!-- /page-traslados -->
+
+  <div class="tabpage" id="page-excursiones">
+  <header class="top" style="background:linear-gradient(135deg,#2A9D96 0%,#1f7d77 100%);box-shadow:0 10px 30px rgba(42,157,150,.28)">
+    <div class="exc-head-row">
+      <span class="exc-head-logo">
+        <svg viewBox="0 0 60 76" xmlns="http://www.w3.org/2000/svg" aria-label="Despegar">
+          <path d="M2 2 H30 a28 36 0 0 1 0 72 H2 Z" fill="#C9B6FF"/>
+          <path d="M2 2 H16 a28 36 0 0 1 0 72 H2 Z" fill="#5B12E0"/>
+        </svg>
+      </span>
+      <div>
+        <h1>Procesamiento de Cobro de Excursiones</h1>
+        <p>Cada ID Reserva es una excursión · Fecha de cobro = fecha de actividad + 2 días</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="kpis" id="excKpis"></div>
+
+  <div class="toolbar">
+    <div class="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="excQ" placeholder="Buscar por ID Reserva, titular o actividad…">
+    </div>
+    <div class="filters" id="excFilters">
+      <button class="chip-btn active" data-f="all">Todas</button>
+      <button class="chip-btn" data-f="pending">Pendientes</button>
+      <button class="chip-btn" data-f="paid">Pagadas</button>
+    </div>
+    <div class="filterrow">
+    <div class="datefilter">
+      <span class="df-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Fecha de cobro</span>
+      <input type="date" id="excDFrom">
+      <span class="df-sep">→</span>
+      <input type="date" id="excDTo">
+      <button class="chip-btn df-search" onclick="excSetRange()">Buscar</button>
+      <button class="chip-btn df-clear" onclick="excClearRange()">Limpiar</button>
+    </div>
+    <div class="data-actions">
+      <button class="act-btn import" onclick="document.getElementById('excImportFile').click()">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 21h14"/></svg></span>
+        Importar Excel
+      </button>
+      <button class="act-btn export" onclick="excExportXlsx()">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg></span>
+        Exportar a Sheets
+      </button>
+      <input type="file" id="excImportFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this.files[0])">
+    </div>
+    </div>
+  </div>
+
+  <div class="bulkbar" id="excBulkbar">
+    <label class="bulk-all"><input type="checkbox" id="excSelAll" onclick="excToggleSelectAll(this.checked)"> Seleccionar todas las reservas del filtro</label>
+    <span class="bulk-count" id="excBulkCount">0 seleccionados</span>
+    <div class="bulk-actions">
+      <button class="bulk-btn pay" onclick="excBulkPay(true)">Marcar pagado</button>
+      <button class="bulk-btn unpay" onclick="excBulkPay(false)">Marcar pendiente</button>
+      <button class="bulk-btn clear" onclick="excClearSelection()">Limpiar selección</button>
+    </div>
+  </div>
+
+  <div class="rates" id="excRates">
+    <div class="rates-head" onclick="document.getElementById('excRates').classList.toggle('open')">
+      <svg class="rates-caret" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      <span class="rates-title">Tasas de cambio por día (USD → DOP)</span>
+      <span class="rates-info">Comparten las mismas tasas que Traslados</span>
+    </div>
+    <div class="rates-body">
+      <div class="rate-add">
+        <input type="date" id="excRateDate">
+        <input type="number" step="0.01" min="0" id="excRateVal" placeholder="Tasa (ej. 58.60)">
+        <button class="chip-btn df-search" onclick="excAddRate()">Guardar tasa</button>
+      </div>
+      <div id="excRatesList" class="rates-list"></div>
+    </div>
+  </div>
+
+  <div id="excList"></div>
+  <div id="excPager" class="pager"></div>
+  </div><!-- /page-excursiones -->
+
+  <footer>DPG · Datos guardados en tu base de datos (Supabase)</footer>
+
+  <div id="importModal" class="im-overlay">
+    <div class="im-box">
+      <div class="im-head">Confirmar importación</div>
+      <div class="im-file" id="imName"></div>
+      <div id="imBody"></div>
+      <div class="im-actions">
+        <button class="im-cancel" onclick="cancelImport()">Cancelar</button>
+        <button class="im-ok" id="imConfirm" onclick="confirmImport()">Importar</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /appShell -->
+
+<script>
+/* ===================== SUPABASE (base de datos + login) ===================== */
+const SUPABASE_URL = 'https://tmcibjgvbdqdgdnjqhfd.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_F75xUfkVTG4CopLRSdSMAw_MLV2pcDQ';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function setSync(state){
+  const el=document.getElementById('syncStatus'); if(!el) return;
+  el.className='session-sync'+(state==='saving'?' saving':state==='error'?' error':'');
+  el.textContent = state==='saving'?'Guardando…': state==='error'?'Error al guardar': 'Guardado';
+}
+
+/* ---- Login / sesión ---- */
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const err=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
+  err.textContent='';
+  if(!email||!pass){ err.textContent='Escribe tu correo y contraseña.'; return; }
+  btn.disabled=true; btn.textContent='Entrando…';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled=false; btn.textContent='Entrar';
+  if(error){ err.textContent='Correo o contraseña incorrectos.'; return; }
+  await startApp(data.user);
+}
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+async function startApp(user){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appShell').style.display='block';
+  document.getElementById('sessionUser').textContent=user.email||'';
+  await loadAllFromDB();
+}
+
+/* ---- Carga inicial desde la base ---- */
+async function loadAllFromDB(){
+  setSync('saving');
+  try{
+    const [tras, tmeta, exc, tas] = await Promise.all([
+      fetchAll('traslados'),
+      fetchAll('traslados_meta'),
+      fetchAll('excursiones'),
+      fetchAll('tasas')
+    ]);
+    if(tras.length){
+      DATA = tras.map(r=>({fenix:r.fenix, reserva:r.reserva, fecha:r.fecha, modalidad:r.modalidad, titular:r.titular, neta:Number(r.neta)||0}));
+      pagos={};
+      tras.forEach(r=>{ pagos[r.reserva]={ fecha:r.pago_fecha||'', manual:!!r.pago_manual, pagado:!!r.pagado }; });
+    }
+    meta={}; links={};
+    tmeta.forEach(m=>{
+      meta[m.fenix]={ notas:m.notas||'', declinada:!!m.declinada, comentario:m.comentario||'' };
+      if(m.link) links[m.fenix]=m.link;
+    });
+    if(exc.length){
+      EXC_DATA = exc.map(r=>({reserva:r.reserva, fecha:r.fecha, titular:r.titular, actividad:r.actividad, neta:Number(r.neta)||0}));
+      excPagos={}; excLinks={};
+      exc.forEach(r=>{
+        excPagos[r.reserva]={ fecha:r.pago_fecha||'', manual:!!r.pago_manual, pagado:!!r.pagado, declinada:!!r.declinada, comentario:r.comentario||'', notas:r.notas||'' };
+        if(r.link) excLinks[r.reserva]=r.link;
+      });
+    }
+    tasas={};
+    tas.forEach(t=>{ tasas[t.fecha]=Number(t.valor); });
+
+    rebuild(); render();
+    excRebuild(); excRender();
+    setSync('ok');
+  }catch(e){
+    console.error(e); setSync('error');
+    alert('No se pudieron cargar los datos: '+e.message);
+  }
+}
+async function fetchAll(table){
+  const out=[]; let from=0; const step=1000;
+  while(true){
+    const { data, error } = await sb.from(table).select('*').range(from, from+step-1);
+    if(error) throw error;
+    out.push(...data);
+    if(data.length<step) break;
+    from+=step;
+  }
+  return out;
+}
+
+/* ---- Guardado: upsert por registro ---- */
+async function dbUpsert(table, rows){
+  if(!rows||!rows.length) return;
+  setSync('saving');
+  const { error } = await sb.from(table).upsert(rows);
+  if(error){ console.error(error); setSync('error'); } else setSync('ok');
+}
+async function dbDelete(table, col, val){
+  setSync('saving');
+  const { error } = await sb.from(table).delete().eq(col, val);
+  if(error){ console.error(error); setSync('error'); } else setSync('ok');
+}
+function rowTraslado(reserva){
+  const r=DATA.find(x=>x.reserva===reserva); if(!r) return null;
+  const p=pagos[reserva]||{};
+  return { reserva:r.reserva, fenix:r.fenix, fecha:r.fecha, modalidad:r.modalidad, titular:r.titular, neta:r.neta,
+           pago_fecha:p.fecha||null, pago_manual:!!p.manual, pagado:!!p.pagado };
+}
+function rowMeta(fenix){
+  const m=meta[fenix]||{};
+  return { fenix:fenix, notas:m.notas||null, declinada:!!m.declinada, comentario:m.comentario||null, link:links[fenix]||null };
+}
+function rowExc(reserva){
+  const r=EXC_DATA.find(x=>x.reserva===reserva); if(!r) return null;
+  const p=excPagos[reserva]||{};
+  return { reserva:r.reserva, fecha:r.fecha, titular:r.titular, actividad:r.actividad, neta:r.neta,
+           pago_fecha:p.fecha||null, pago_manual:!!p.manual, pagado:!!p.pagado,
+           declinada:!!p.declinada, comentario:p.comentario||null, notas:p.notas||null, link:excLinks[reserva]||null };
+}
+
+window.addEventListener('load', async ()=>{
+  const { data } = await sb.auth.getSession();
+  if(data && data.session){ await startApp(data.session.user); }
+  else { document.getElementById('loginScreen').style.display='flex'; }
+});
+
+let DATA =
+[];
+
+/* ---------- estado de pagos (persistente en este navegador) ---------- */
+const STORE_KEY = 'dpg_pagos_v1';
+let pagos = {};
+try { pagos = JSON.parse(window.__dpg_store || '{}'); } catch(e){ pagos = {}; }
+// tasas de cambio por fecha (ISO -> número DOP por USD); links de pago por ID Fénix
+let tasas = {};
+try { tasas = JSON.parse(window.__dpg_tasas || '{}'); } catch(e){ tasas = {}; }
+let links = {};
+try { links = JSON.parse(window.__dpg_links || '{}'); } catch(e){ links = {}; }
+// notas y estado declinada por ID Fénix: { notas, declinada, comentario }
+let meta = {};
+try { meta = JSON.parse(window.__dpg_meta || '{}'); } catch(e){ meta = {}; }
+// fallback en memoria (los artifacts no permiten localStorage)
+function save(){
+  window.__dpg_store = JSON.stringify(pagos);
+  window.__dpg_tasas = JSON.stringify(tasas);
+  window.__dpg_links = JSON.stringify(links);
+  window.__dpg_meta = JSON.stringify(meta);
+}
+
+function fmt(n){ return '$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDOP(n){ return 'RD$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDOPint(n){ return 'RD$' + Math.round(Number(n)); }
+// RD$ y monto en spans separados: doble clic selecciona solo el número
+function dopParts(n){ return `<span class="dop-cur">RD$</span><span class="dop-amt">${Math.round(Number(n))}</span>`; }
+function tasaDe(iso){ return (iso && tasas[iso]!=null) ? tasas[iso] : null; }
+function today(){ const d=new Date(); return d.toISOString().slice(0,10); }
+
+/* ---------- helpers de fecha ---------- */
+// "DD/MM/YYYY" -> Date (mediodía para evitar saltos por zona horaria)
+function parseFecha(s){
+  if(!s) return null;
+  const m = String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1], 12, 0, 0);
+}
+function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function toISO(d){ return d ? d.toISOString().slice(0,10) : ''; }
+function fmtFecha(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+
+/* ---------- agrupar por ID Fénix ---------- */
+let groups = {};
+let GROUPS = [];
+
+/* ---------- fecha de cobro automática ----------
+   - Si el grupo Fénix tiene varias reservas: base = fecha del traslado OUT.
+     (si hubiera más de un OUT se toma el más tardío; si no hay OUT, la fecha más tardía).
+   - Si tiene una sola reserva: base = fecha de esa reserva.
+   Regla: fecha de cobro = base + 2 días, igual para todas las reservas del grupo.
+   No sobrescribe una fecha editada manualmente por el usuario. */
+function computeCobro(g){
+  let base=null;
+  if(g.rows.length===1){
+    base = parseFecha(g.rows[0].fecha);
+  }else{
+    const outs = g.rows.filter(r=>r.modalidad==='OUT').map(r=>parseFecha(r.fecha)).filter(Boolean);
+    const pool = outs.length ? outs : g.rows.map(r=>parseFecha(r.fecha)).filter(Boolean);
+    if(pool.length) base = pool.reduce((a,b)=>b>a?b:a);
+  }
+  return base ? toISO(addDays(base,2)) : '';
+}
+
+function rebuild(recalcAll){
+  groups = {};
+  DATA.forEach(r=>{
+    (groups[r.fenix] = groups[r.fenix] || {fenix:r.fenix, rows:[]}).rows.push(r);
+  });
+  GROUPS = Object.values(groups);
+  GROUPS.forEach(g=>{
+    const cobro = computeCobro(g);
+    g.cobroAuto = cobro;
+    g.rows.forEach(r=>{
+      pagos[r.reserva] = pagos[r.reserva] || {};
+      // recalcAll=true (tras importar): recalcula la fecha de cobro de TODAS las reservas
+      // desde cero, incluso las editadas a mano, y limpia la marca manual.
+      // En la carga normal solo se rellenan las que no fueron editadas manualmente.
+      if(cobro && (recalcAll || !pagos[r.reserva].manual)){
+        pagos[r.reserva].fecha = cobro;
+        if(recalcAll) pagos[r.reserva].manual = false;
+      }
+    });
+  });
+  save();
+}
+rebuild();
+
+let filter = 'all';
+let query = '';
+let perPage = 25;
+let page = 1;
+let dFrom = '';
+let dTo = '';
+
+function rowState(g){
+  if(meta[g.fenix] && meta[g.fenix].declinada) return 'declined';
+  const paid = g.rows.filter(r=>pagos[r.reserva]&&pagos[r.reserva].pagado).length;
+  if(paid===0) return 'pending';
+  if(paid===g.rows.length) return 'paid';
+  return 'partial';
+}
+
+function renderKpis(visible){
+  visible = visible || GROUPS;
+  const rows = visible.flatMap(g=>g.rows);
+  const totalGlobal = DATA.length;
+  const hayFiltro = (filter!=='all') || query.trim() || dFrom || dTo;
+  let total=0, cobrado=0, pendiente=0, nResPaid=0;
+  let depositarDop=0, faltaTasa=false;
+  rows.forEach(r=>{
+    total+=r.neta;
+    if(pagos[r.reserva]&&pagos[r.reserva].pagado){
+      cobrado+=r.neta; nResPaid++;
+      const t=tasaDe(pagos[r.reserva].fecha);
+      if(t!=null) depositarDop += r.neta*(1-0.035)*t;
+      else faltaTasa=true;
+    } else pendiente+=r.neta;
+  });
+  const comision = cobrado * 0.035;
+  const depositar = cobrado - comision;
+  const depDopStr = nResPaid===0 ? '' : (`<span class="dep-dop">${dopParts(depositarDop)}</span>` + (faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa registrada; no suman al DOP">⚠</span>':''));
+  let nUnicas=0, nDobles=0;
+  visible.forEach(g=>{ if(g.rows.length>1) nDobles+=g.rows.length; else nUnicas+=g.rows.length; });
+  const ventaSub = `<span class="vsub-main">${rows.length} reservas${hayFiltro?` de ${totalGlobal} (filtrado)`:''}</span>`
+    + `<span class="vsub-li">${nUnicas} únicas</span>`
+    + `<span class="vsub-li">${nDobles} en grupo</span>`;
+  const k=[
+    {c:'amber',i:'<svg width="18" height="18" fill="none" stroke="#F5A623" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', l:'Total venta', v:fmt(total), s:ventaSub},
+    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>', l:'Cobrado', v:fmt(cobrado), s:nResPaid+' reservas pagadas'},
+    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>', l:'Pendiente', v:fmt(pendiente), s:(rows.length-nResPaid)+' reservas'},
+    {c:'blue', i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', l:'Comisión Azul', v:fmt(comision), s:'3.5% sobre cobrado', deposit:fmt(depositar), depositDop:depDopStr},
+  ];
+  document.getElementById('kpis').innerHTML = k.map(x=>`
+    <div class="kpi">
+      <div class="ic ${x.c}">${x.i}</div>
+      <div class="lbl">${x.l}</div>
+      <div class="val">${x.v}</div>
+      <div class="sub">${x.s}</div>
+      ${x.deposit?`<div class="kpi-deposit"><span class="dep-lbl">Total a depositar</span><div class="dep-amts"><span class="dep-val">USD: ${x.deposit.replace('$','')}</span>${x.depositDop?`<span class="dep-sep">-</span>${x.depositDop}`:''}</div></div>`:''}
+    </div>`).join('');
+}
+
+function inRange(d){
+  if(!d) return false;
+  if(dFrom && d < dFrom) return false;
+  if(dTo && d > dTo) return false;
+  return true;
+}
+
+function matches(g){
+  const st = rowState(g);
+  if(filter==='paid' && st!=='paid') return false;
+  if(filter==='pending' && st==='paid') return false;
+  if(dFrom || dTo){
+    if(!g.rows.some(r=>{const p=pagos[r.reserva]; return p && inRange(p.fecha);})) return false;
+  }
+  if(!query) return true;
+  const q=query.toLowerCase();
+  if(g.fenix.toLowerCase().includes(q)) return true;
+  return g.rows.some(r=>r.reserva.toLowerCase().includes(q)||(r.titular||'').toLowerCase().includes(q));
+}
+
+const openState = {};
+const selected = new Set();
+
+// Logo Despegar: media luna oscura recortada sobre una "D" lila clara
+const LOGO = `<svg class="dp-logo" viewBox="0 0 60 76" xmlns="http://www.w3.org/2000/svg" aria-label="Despegar">
+  <path d="M2 2 H30 a28 36 0 0 1 0 72 H2 Z" fill="#C9B6FF"/>
+  <path d="M2 2 H16 a28 36 0 0 1 0 72 H2 Z" fill="#5B12E0"/>
+</svg>`;
+
+function render(){
+  const list=document.getElementById('list');
+  const visible=GROUPS.filter(matches);
+  renderKpis(visible);
+  const tc=document.getElementById('tabCountTras'); if(tc) tc.textContent=DATA.length;
+  const pager=document.getElementById('pager');
+  if(!visible.length){ list.innerHTML='<div class="empty">Sin resultados para tu búsqueda.</div>'; pager.innerHTML=''; renderRates(); return; }
+
+  const totalPages = perPage==='all' ? 1 : Math.max(1, Math.ceil(visible.length/perPage));
+  if(page>totalPages) page=totalPages;
+  if(page<1) page=1;
+  const slice = perPage==='all' ? visible : visible.slice((page-1)*perPage, page*perPage);
+
+  list.innerHTML = slice.map(g=>{
+    const st=rowState(g);
+    const total=g.rows.reduce((a,r)=>a+r.neta,0);
+    const pillTxt = st==='paid'?'Pagado': st==='partial'?'Parcial': st==='declined'?'Declinada':'Pendiente';
+    const m = meta[g.fenix]||{};
+    const declined = !!m.declinada;
+    const groupCobro = (pagos[g.rows[0].reserva]||{}).fecha || g.cobroAuto || '';
+    const tasaG = tasaDe(groupCobro);
+    const totalDop = tasaG!=null ? total * tasaG : null;
+    const open = openState[g.fenix];
+    const rowsHtml = g.rows.map(r=>{
+      const p = pagos[r.reserva]||{};
+      const done = !!p.pagado;
+      const tasaR = tasaDe(p.fecha);
+      const dopCell = tasaR!=null
+        ? `${fmtDOP(r.neta*tasaR)}<span class="dop-rate">@${tasaR.toFixed(2)}</span>`
+        : `<span class="dop-none" title="Falta la tasa de cambio para ${p.fecha?fmtFecha(p.fecha):'esta fecha'}">sin tasa</span>`;
+      return `<tr class="${done?'paid-row':''}" data-res="${r.reserva}">
+        <td data-l="ID Reserva">${r.reserva}</td>
+        <td data-l="Fecha traslado">${r.fecha}</td>
+        <td data-l="Modalidad"><span class="mod ${r.modalidad}">${r.modalidad}</span></td>
+        <td data-l="Tarifa neta" class="neta">${fmt(r.neta)}</td>
+        <td data-l="Valor DOP" class="dop">${dopCell}</td>
+        <td data-l="Fecha de cobro" class="fecha-cobro"><input type="date" value="${p.fecha||''}" onchange="setFecha('${r.reserva}',this.value)">${p.fecha?`<span class="tag-cobro ${p.manual?'man':'auto'}">${p.manual?'manual':'auto'}</span>`:''}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="group ${open?'open':''}" data-fenix="${g.fenix}">
+      <div class="group-head">
+        <input type="checkbox" class="sel-chk" ${selected.has(g.fenix)?'checked':''} onclick="event.stopPropagation();toggleSelect('${g.fenix}')" title="Seleccionar">
+        <svg class="caret" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer"><path d="m9 18 6-6-6-6"/></svg>
+        <div class="head-id" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer;flex:1">
+          <div>
+            <div class="fenix-name-main">${g.rows[0].titular||'—'}</div>
+            <div class="fenix-meta"><span class="fenix-id-small">Fénix ${g.fenix}</span> · ${g.rows.length} reserva${g.rows.length>1?'s':''}</div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="group-cobro"><div class="lbl">Fecha de cobro</div><div class="cdate">${groupCobro ? fmtFecha(groupCobro) : '—'}</div></div>
+          <div class="group-total"><div class="lbl">Total a cobrar</div><div class="amt-row"><span class="amt-usd">USD: ${fmt(total).replace('$','')}</span><span class="amt-sep">-</span><span class="amt-dop">${totalDop!=null?dopParts(totalDop):'<span class="dop-none">sin tasa</span>'}</span></div></div>
+          <span class="stat-pill ${st}">${pillTxt}</span>
+          <button class="pay-btn ${st==='paid'?'done':''}" onclick="event.stopPropagation();toggleGroupPay('${g.fenix}')">${st==='paid'?'✓ Pagado':'Marcar pagado'}</button>
+          <button class="decline-btn ${declined?'active':''}" onclick="event.stopPropagation();toggleDecline('${g.fenix}')">${declined?'✓ Declinada':'Declinada'}</button>
+        </div>
+      </div>
+      <div class="group-body">
+        <div class="paylink">
+          <span class="paylink-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg> Link de pago</span>
+          <input type="url" id="link-${g.fenix}" placeholder="https://… (link de pago del Fénix)" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')">
+          <button class="paylink-save" onclick="saveLink('${g.fenix}')">Guardar</button>
+          ${justSavedLink===g.fenix?'<span class="paylink-ok">✓ Guardado</span>':''}
+          ${links[g.fenix]?`<a class="paylink-open" href="${links[g.fenix].replace(/"/g,'&quot;')}" target="_blank" rel="noopener">Abrir</a>`:''}
+          <span class="paylink-dop">${totalDop!=null?dopParts(totalDop):'<span class="dop-none">sin tasa</span>'}</span>
+        </div>
+        <div class="notes-row">
+          <span class="notes-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/></svg> Notas</span>
+          <input type="text" class="notes-input" id="notes-${g.fenix}" placeholder="Agregar nota…" value="${(m.notas||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveNote('${g.fenix}')">
+          <button class="notes-save" onclick="saveNote('${g.fenix}')">Guardar</button>
+        </div>
+        ${declined?`<div class="decline-box">
+          <div class="decline-head"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Reserva declinada</div>
+          <input type="text" class="decline-input" id="decline-${g.fenix}" placeholder="Motivo / comentario de la declinación…" value="${(m.comentario||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveDeclineComment('${g.fenix}')">
+          <button class="decline-save" onclick="saveDeclineComment('${g.fenix}')">Guardar comentario</button>
+          ${m.comentario?`<div class="decline-shown">“${m.comentario.replace(/</g,'&lt;')}”</div>`:''}
+        </div>`:''}
+        <table><thead><tr>
+          <th>ID Reserva</th><th>Fecha traslado</th><th>Modalidad</th>
+          <th>Tarifa neta</th><th>Valor DOP</th><th>Fecha de cobro</th>
+        </tr></thead><tbody>${rowsHtml}</tbody></table>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderPager(visible.length, totalPages);
+  updateBulkBar(visible);
+  renderRates();
+}
+
+function updateBulkBar(visible){
+  const bar=document.getElementById('bulkbar');
+  const count=selected.size;
+  bar.classList.toggle('show', count>0);
+  document.getElementById('bulkCount').textContent =
+    count+' grupo'+(count!==1?'s':'')+' seleccionado'+(count!==1?'s':'');
+  const allSel = visible.length>0 && visible.every(g=>selected.has(g.fenix));
+  document.getElementById('selAll').checked = allSel;
+}
+
+function toggleSelect(fenix){
+  if(selected.has(fenix)) selected.delete(fenix); else selected.add(fenix);
+  render();
+}
+function toggleSelectAll(on){
+  const visible=GROUPS.filter(matches);
+  if(on) visible.forEach(g=>selected.add(g.fenix));
+  else visible.forEach(g=>selected.delete(g.fenix));
+  render();
+}
+function clearSelection(){ selected.clear(); render(); }
+function bulkPay(estado){
+  const afectadas=[];
+  selected.forEach(fenix=>{
+    const g=groups[fenix]; if(!g)return;
+    g.rows.forEach(r=>{
+      pagos[r.reserva]=pagos[r.reserva]||{};
+      pagos[r.reserva].pagado=estado;
+      if(estado && !pagos[r.reserva].fecha) pagos[r.reserva].fecha=today();
+      afectadas.push(r.reserva);
+    });
+  });
+  save(); render();
+  dbUpsert('traslados', afectadas.map(rowTraslado).filter(Boolean));
+}
+
+function renderPager(totalGroups, totalPages){
+  const pager=document.getElementById('pager');
+  const from = perPage==='all' ? 1 : (page-1)*perPage+1;
+  const to   = perPage==='all' ? totalGroups : Math.min(page*perPage, totalGroups);
+  const opts = [25,50,100,200].map(n=>`<option value="${n}" ${perPage===n?'selected':''}>${n}</option>`).join('')
+    + `<option value="all" ${perPage==='all'?'selected':''}>Todas</option>`;
+  let nav='';
+  if(perPage!=='all' && totalPages>1){
+    nav = `
+      <button class="pg-btn" ${page<=1?'disabled':''} onclick="goPage(1)">«</button>
+      <button class="pg-btn" ${page<=1?'disabled':''} onclick="goPage(${page-1})">‹</button>
+      <span class="pg-cur">Página ${page} de ${totalPages}</span>
+      <button class="pg-btn" ${page>=totalPages?'disabled':''} onclick="goPage(${page+1})">›</button>
+      <button class="pg-btn" ${page>=totalPages?'disabled':''} onclick="goPage(${totalPages})">»</button>`;
+  }
+  pager.innerHTML = `
+    <div class="pg-info">Mostrando <b>${from}–${to}</b> de <b>${totalGroups}</b> grupos Fénix</div>
+    <div class="pg-nav">${nav}</div>
+    <div class="pg-per">
+      <span>Por página</span>
+      <select id="perPageSel" onchange="setPerPage(this.value)">${opts}</select>
+    </div>`;
+}
+
+function goPage(p){ page=p; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function setPerPage(v){ perPage = v==='all'?'all':parseInt(v,10); page=1; render(); }
+
+function toggleGroup(f){ openState[f]=!openState[f]; render(); }
+function setFecha(res,val){
+  pagos[res]=pagos[res]||{}; pagos[res].fecha=val; pagos[res].manual=true; save(); render();
+  dbUpsert('traslados',[rowTraslado(res)]);
+}
+function setLink(fenix,val){
+  val=val.trim();
+  if(val) links[fenix]=val; else delete links[fenix];
+  save(); render();
+}
+function saveLink(fenix){
+  const inp=document.getElementById('link-'+fenix);
+  if(!inp) return;
+  const val=inp.value.trim();
+  if(val) links[fenix]=val; else delete links[fenix];
+  save();
+  dbUpsert('traslados_meta',[rowMeta(fenix)]);
+  justSavedLink=fenix;
+  render();
+  setTimeout(()=>{ if(justSavedLink===fenix){ justSavedLink=null; render(); } }, 1800);
+}
+let justSavedLink=null;
+function addRate(){
+  const d=document.getElementById('rateDate').value;
+  const v=parseFloat(document.getElementById('rateVal').value);
+  if(!d){ alert('Selecciona una fecha.'); return; }
+  if(!v||v<=0){ alert('Ingresa una tasa válida.'); return; }
+  tasas[d]=Math.round(v*100)/100;
+  document.getElementById('rateVal').value='';
+  save(); render();
+  if(typeof excRender==='function') excRender();
+  dbUpsert('tasas',[{fecha:d, valor:tasas[d]}]);
+}
+function removeRate(iso){ delete tasas[iso]; save(); render(); if(typeof excRender==='function') excRender(); dbDelete('tasas','fecha',iso); }
+function renderRates(){
+  const cont=document.getElementById('ratesList');
+  const keys=Object.keys(tasas).sort();
+  if(!keys.length){ cont.innerHTML='<div class="rates-empty">Aún no has registrado tasas. Sin tasa para la fecha de cobro, el DOP no se calcula.</div>'; return; }
+  cont.innerHTML = keys.map(iso=>`
+    <div class="rate-item">
+      <span class="rate-date">${fmtFecha(iso)}</span>
+      <span class="rate-num">${Number(tasas[iso]).toFixed(2)}</span>
+      <button class="rate-del" onclick="removeRate('${iso}')" title="Eliminar">✕</button>
+    </div>`).join('');
+}
+function toggleGroupPay(fenix){
+  const g=groups[fenix]; if(!g)return;
+  const allPaid=g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado);
+  const nuevo=!allPaid; // si todas pagadas -> desmarcar; si no -> marcar todas
+  g.rows.forEach(r=>{
+    pagos[r.reserva]=pagos[r.reserva]||{};
+    pagos[r.reserva].pagado=nuevo;
+    if(nuevo && !pagos[r.reserva].fecha) pagos[r.reserva].fecha=today();
+  });
+  if(nuevo && meta[fenix]) meta[fenix].declinada=false; // pagar quita la declinación
+  save(); render();
+  dbUpsert('traslados', g.rows.map(r=>rowTraslado(r.reserva)).filter(Boolean));
+  if(meta[fenix]) dbUpsert('traslados_meta',[rowMeta(fenix)]);
+}
+function toggleDecline(fenix){
+  meta[fenix]=meta[fenix]||{};
+  meta[fenix].declinada=!meta[fenix].declinada;
+  if(meta[fenix].declinada){
+    const g=groups[fenix];
+    if(g) g.rows.forEach(r=>{ if(pagos[r.reserva]) pagos[r.reserva].pagado=false; });
+    openState[fenix]=true;
+  }
+  save(); render();
+  dbUpsert('traslados_meta',[rowMeta(fenix)]);
+  const g2=groups[fenix];
+  if(g2) dbUpsert('traslados', g2.rows.map(r=>rowTraslado(r.reserva)).filter(Boolean));
+}
+function saveNote(fenix){
+  const el=document.getElementById('notes-'+fenix); if(!el) return;
+  meta[fenix]=meta[fenix]||{};
+  const v=el.value.trim();
+  if(v) meta[fenix].notas=v; else delete meta[fenix].notas;
+  save(); render();
+  dbUpsert('traslados_meta',[rowMeta(fenix)]);
+}
+function saveDeclineComment(fenix){
+  const el=document.getElementById('decline-'+fenix); if(!el) return;
+  meta[fenix]=meta[fenix]||{};
+  const v=el.value.trim();
+  if(v) meta[fenix].comentario=v; else delete meta[fenix].comentario;
+  save(); render();
+  dbUpsert('traslados_meta',[rowMeta(fenix)]);
+}
+
+document.getElementById('q').addEventListener('input',e=>{query=e.target.value;page=1;render();});
+document.getElementById('filters').addEventListener('click',e=>{
+  const b=e.target.closest('.chip-btn'); if(!b)return;
+  document.querySelectorAll('#filters .chip-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); filter=b.dataset.f; page=1; render();
+});
+
+function setRange(){
+  dFrom=document.getElementById('dFrom').value;
+  dTo=document.getElementById('dTo').value;
+  document.getElementById('dClear').classList.toggle('show', !!(dFrom||dTo));
+  page=1; render();
+}
+['dFrom','dTo'].forEach(id=>document.getElementById(id)
+  .addEventListener('keydown',e=>{ if(e.key==='Enter') setRange(); }));
+function clearRange(){
+  dFrom=''; dTo='';
+  document.getElementById('dFrom').value='';
+  document.getElementById('dTo').value='';
+  document.getElementById('dClear').classList.remove('show');
+  page=1; render();
+}
+
+/* ---------- Importar / Exportar ---------- */
+const COLS = {
+  fenix:'ID Fenix', reserva:'ID Reserva', fecha:'Fecha traslado',
+  modalidad:'Modalidad', titular:'Titular de la reserva', neta:'Tarifa Neta'
+};
+const EXC_COLS = {
+  reserva:'ID Reserva', fecha:'Fecha de actividad',
+  titular:'Titular de la reserva', neta:'Tarifa Neta', actividad:'Nombre de la actividad/traslado'
+};
+const TIPO_COL = 'Tipo de reserva';
+// Una fila es traslado si Tipo de reserva contiene "traslado"; cualquier otro valor = excursión.
+function esTraslado(r){ return String(r[TIPO_COL]||'').trim().toLowerCase().includes('traslado'); }
+
+function excelDateToDDMMYYYY(v){
+  if(v==null||v==='') return '';
+  if(typeof v==='number'){
+    const d=XLSX.SSF.parse_date_code(v);
+    if(d) return String(d.d).padStart(2,'0')+'/'+String(d.m).padStart(2,'0')+'/'+d.y;
+  }
+  if(v instanceof Date){
+    return String(v.getDate()).padStart(2,'0')+'/'+String(v.getMonth()+1).padStart(2,'0')+'/'+v.getFullYear();
+  }
+  const s=String(v).trim();
+  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m) return m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+m[3];
+  const m2=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m2) return m2[3]+'/'+m2[2]+'/'+m2[1];
+  return s;
+}
+
+let pendingImport=null; // {tras:[], exc:[]}
+function importExcel(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){ alert('El archivo no tiene filas.'); return; }
+      if(!(EXC_COLS.reserva in rows[0]) || !(EXC_COLS.neta in rows[0])){
+        alert('Faltan columnas básicas (ID Reserva / Tarifa Neta) en el Excel.'); return;
+      }
+
+      const existTras=new Set(DATA.map(r=>String(r.reserva)));
+      const existExc=new Set(EXC_DATA.map(r=>String(r.reserva)));
+      const nuevasTras=[], nuevasExc=[];
+      let dup=0, vacias=0;
+      rows.forEach(r=>{
+        const reserva=String(r[EXC_COLS.reserva]).trim();
+        if(!reserva){ vacias++; return; }
+        if(esTraslado(r)){
+          if(existTras.has(reserva)){ dup++; return; }
+          nuevasTras.push({
+            fenix:String(r[COLS.fenix]||'').trim(),
+            reserva:reserva,
+            fecha:excelDateToDDMMYYYY(r[COLS.fecha]),
+            modalidad:String(r[COLS.modalidad]||'').trim().toUpperCase(),
+            titular:String(r[COLS.titular]||'').trim(),
+            neta:Math.round((parseFloat(r[COLS.neta])||0)*100)/100
+          });
+          existTras.add(reserva);
+        }else{
+          if(existExc.has(reserva)){ dup++; return; }
+          nuevasExc.push({
+            reserva:reserva,
+            fecha:excelDateToDDMMYYYY(r[EXC_COLS.fecha]),
+            titular:String(r[EXC_COLS.titular]||'').trim(),
+            actividad:String(r[EXC_COLS.actividad]||'').trim(),
+            neta:Math.round((parseFloat(r[EXC_COLS.neta])||0)*100)/100
+          });
+          existExc.add(reserva);
+        }
+      });
+      pendingImport={tras:nuevasTras, exc:nuevasExc};
+      showImportModal(file.name, rows.length, nuevasTras.length, nuevasExc.length, dup, vacias);
+    }catch(err){ alert('Error leyendo el Excel: '+err.message); }
+    finally{ document.getElementById('importFile').value=''; document.getElementById('excImportFile').value=''; }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showImportModal(name, leidas, nTras, nExc, dup, vacias){
+  const m=document.getElementById('importModal');
+  const total=nTras+nExc;
+  document.getElementById('imName').textContent=name;
+  document.getElementById('imBody').innerHTML=`
+    <div class="im-row"><span>Filas leídas</span><b>${leidas}</b></div>
+    <div class="im-row im-new"><span>Traslados nuevos</span><b>${nTras}</b></div>
+    <div class="im-row im-new"><span>Excursiones nuevas</span><b>${nExc}</b></div>
+    <div class="im-row"><span>Duplicadas (se omiten)</span><b>${dup}</b></div>
+    ${vacias?`<div class="im-row"><span>Sin ID Reserva (ignoradas)</span><b>${vacias}</b></div>`:''}
+    <div class="im-note">⚠ Cada fila se asigna a su pestaña según <b>Tipo de reserva</b>. Al confirmar se <b>recalcularán todas las fechas de cobro</b> (incluidas las editadas a mano).</div>`;
+  document.getElementById('imConfirm').disabled = (total===0);
+  document.getElementById('imConfirm').textContent = total===0 ? 'Nada que importar' : `Importar ${total} reserva${total!==1?'s':''}`;
+  m.classList.add('show');
+}
+function cancelImport(){ pendingImport=null; document.getElementById('importModal').classList.remove('show'); }
+async function confirmImport(){
+  if(!pendingImport){ cancelImport(); return; }
+  const nuevasTras=pendingImport.tras.slice();
+  const nuevasExc=pendingImport.exc.slice();
+  const nT=nuevasTras.length, nE=nuevasExc.length;
+  nuevasTras.forEach(r=>DATA.push(r));
+  nuevasExc.forEach(r=>EXC_DATA.push(r));
+  pendingImport=null;
+  document.getElementById('importModal').classList.remove('show');
+  // rebuild() SIN recalcAll: respeta fechas manuales y trabajo existente; solo calcula las nuevas
+  if(nT){ rebuild(); page=1; render(); }
+  if(nE){ excRebuild(); excPage=1; excRender(); }
+  // Subir a la base SOLO las reservas nuevas
+  setSync('saving');
+  try{
+    if(nT){
+      await dbUpsert('traslados', nuevasTras.map(r=>rowTraslado(r.reserva)).filter(Boolean));
+      // meta de grupos nuevos (solo si no existía ya)
+      const fenixNuevos=[...new Set(nuevasTras.map(r=>r.fenix))];
+      await dbUpsert('traslados_meta', fenixNuevos.map(rowMeta));
+    }
+    if(nE){
+      await dbUpsert('excursiones', nuevasExc.map(r=>rowExc(r.reserva)).filter(Boolean));
+    }
+    setSync('ok');
+  }catch(e){ console.error(e); setSync('error'); }
+  const partes=[];
+  if(nT) partes.push(`${nT} traslado${nT!==1?'s':''}`);
+  if(nE) partes.push(`${nE} excursion${nE!==1?'es':''}`);
+  alert(`Importación completada. Se agregaron ${partes.join(' y ')} y se guardaron en tu base de datos.`);
+}
+
+function exportXlsx(){
+  const out=[];
+  GROUPS.forEach(g=>{
+    const mg=meta[g.fenix]||{};
+    const declinada=!!mg.declinada;
+    g.rows.forEach(r=>{
+      const p=pagos[r.reserva]||{};
+      const tasaR=tasaDe(p.fecha);
+      out.push({
+        'ID Fenix':r.fenix,
+        'ID Reserva':r.reserva,
+        'Titular':r.titular,
+        'Fecha traslado':r.fecha,
+        'Modalidad':r.modalidad,
+        'Tarifa Neta (USD)':r.neta,
+        'Tasa USD/DOP':tasaR!=null?tasaR:'',
+        'Valor DOP':tasaR!=null?Math.round(r.neta*tasaR*100)/100:'',
+        'Fecha de cobro':p.fecha?fmtFecha(p.fecha):'',
+        'Estado':declinada?'Declinada':(p.pagado?'Pagado':'Pendiente'),
+        'Origen fecha':p.fecha?(p.manual?'Manual':'Auto'):'',
+        'Link de pago':links[g.fenix]||'',
+        'Notas':mg.notas||'',
+        'Comentario declinación':declinada?(mg.comentario||''):''
+      });
+    });
+  });
+  const ws=XLSX.utils.json_to_sheet(out);
+  ws['!cols']=[{wch:14},{wch:12},{wch:30},{wch:13},{wch:10},{wch:15},{wch:12},{wch:14},{wch:13},{wch:11},{wch:11},{wch:40},{wch:30},{wch:30}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Cobros');
+  XLSX.writeFile(wb,`Cobros_Traslados_DPG_${today()}.xlsx`);
+}
+
+render();
+
+/* ===================== EXCURSIONES ===================== */
+let EXC_DATA = [];
+
+// pagos de excursiones (separado de traslados): { reserva: {fecha, manual, pagado} }
+let excPagos = {};
+try { excPagos = JSON.parse(window.__dpg_exc || '{}'); } catch(e){ excPagos = {}; }
+let excLinks = {};
+try { excLinks = JSON.parse(window.__dpg_exc_links || '{}'); } catch(e){ excLinks = {}; }
+function excSave(){ window.__dpg_exc = JSON.stringify(excPagos); window.__dpg_exc_links = JSON.stringify(excLinks); }
+
+let excFilter='all', excQuery='', excPerPage=25, excPage=1, excDFrom='', excDTo='';
+const excSelected = new Set();
+
+// Fecha de cobro excursión = fecha de actividad + 2 días
+function excComputeCobro(r){ const b=parseFecha(r.fecha); return b ? toISO(addDays(b,2)) : ''; }
+
+function excRebuild(recalcAll){
+  EXC_DATA.forEach(r=>{
+    excPagos[r.reserva] = excPagos[r.reserva] || {};
+    const cobro = excComputeCobro(r);
+    if(cobro && (recalcAll || !excPagos[r.reserva].manual)){
+      excPagos[r.reserva].fecha = cobro;
+      if(recalcAll) excPagos[r.reserva].manual = false;
+    }
+  });
+  excSave();
+}
+excRebuild();
+
+function excInRange(d){ if(!d) return false; if(excDFrom && d<excDFrom) return false; if(excDTo && d>excDTo) return false; return true; }
+function excMatches(r){
+  const p=excPagos[r.reserva]||{};
+  if(excFilter==='paid' && !p.pagado) return false;
+  if(excFilter==='pending' && p.pagado) return false;
+  if(excDFrom || excDTo){ if(!excInRange(p.fecha)) return false; }
+  if(!excQuery) return true;
+  const q=excQuery.toLowerCase();
+  return r.reserva.toLowerCase().includes(q) || (r.titular||'').toLowerCase().includes(q) || (r.actividad||'').toLowerCase().includes(q);
+}
+
+function excRenderKpis(visible){
+  const totalGlobal=EXC_DATA.length;
+  const hayFiltro=(excFilter!=='all')||excQuery.trim()||excDFrom||excDTo;
+  let total=0,cobrado=0,pendiente=0,nPaid=0,depDop=0,faltaTasa=false;
+  visible.forEach(r=>{
+    total+=r.neta;
+    const p=excPagos[r.reserva]||{};
+    if(p.pagado){ cobrado+=r.neta; nPaid++; const t=tasaDe(p.fecha); if(t!=null) depDop+=r.neta*(1-0.035)*t; else faltaTasa=true; }
+    else pendiente+=r.neta;
+  });
+  const comision=cobrado*0.035, depositar=cobrado-comision;
+  const depDopStr = nPaid===0?'':(`<span class="dep-dop">${dopParts(depDop)}</span>`+(faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa; no suman al DOP">⚠</span>':''));
+  const ventaSub=`<span class="vsub-main">${visible.length} excursiones${hayFiltro?` de ${totalGlobal} (filtrado)`:''}</span>`;
+  const k=[
+    {c:'amber',i:'<svg width="18" height="18" fill="none" stroke="#F5A623" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',l:'Total venta',v:fmt(total),s:ventaSub},
+    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',l:'Cobrado',v:fmt(cobrado),s:nPaid+' excursiones pagadas'},
+    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',l:'Pendiente',v:fmt(pendiente),s:(visible.length-nPaid)+' excursiones'},
+    {c:'blue',i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',l:'Comisión Azul',v:fmt(comision),s:'3.5% sobre cobrado',deposit:fmt(depositar),depositDop:depDopStr},
+  ];
+  document.getElementById('excKpis').innerHTML = k.map(x=>`
+    <div class="kpi">
+      <div class="ic ${x.c}">${x.i}</div>
+      <div class="lbl">${x.l}</div>
+      <div class="val">${x.v}</div>
+      <div class="sub">${x.s}</div>
+      ${x.deposit?`<div class="kpi-deposit"><span class="dep-lbl">Total a depositar</span><div class="dep-amts"><span class="dep-val">USD: ${x.deposit.replace('$','')}</span>${x.depositDop?`<span class="dep-sep">-</span>${x.depositDop}`:''}</div></div>`:''}
+    </div>`).join('');
+}
+
+function excRender(){
+  const list=document.getElementById('excList');
+  const pager=document.getElementById('excPager');
+  const visible=EXC_DATA.filter(excMatches);
+  excRenderKpis(visible);
+  document.getElementById('tabCountExc').textContent=EXC_DATA.length;
+  excUpdateBulk();
+  if(!visible.length){ list.innerHTML='<div class="empty">Sin resultados para tu búsqueda.</div>'; pager.innerHTML=''; excRenderRates(); return; }
+  const totalPages = excPerPage==='all'?1:Math.max(1,Math.ceil(visible.length/excPerPage));
+  if(excPage>totalPages) excPage=totalPages; if(excPage<1) excPage=1;
+  const slice = excPerPage==='all'?visible:visible.slice((excPage-1)*excPerPage, excPage*excPerPage);
+
+  const rowsHtml = slice.map(r=>{
+    const p=excPagos[r.reserva]||{};
+    const done=!!p.pagado;
+    const tasaR=tasaDe(p.fecha);
+    const dopCell = tasaR!=null
+      ? `${fmtDOP(r.neta*tasaR)}<span class="dop-rate" style="opacity:.7"> @${tasaR.toFixed(2)}</span>`
+      : `<span class="dop-none" title="Falta la tasa para ${p.fecha?fmtFecha(p.fecha):'esta fecha'}">sin tasa</span>`;
+    const origin = p.fecha ? `<span class="exc-origin ${p.manual?'manual':'auto'}">${p.manual?'manual':'auto'}</span>` : '';
+    const lnk=(excLinks[r.reserva]||'').replace(/"/g,'&quot;');
+    const linkCell = `<div class="exc-linkwrap">
+        <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="https://…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')">
+        <button class="exc-link-save" onclick="excSaveLink('${r.reserva}')" title="Guardar link">Guardar</button>
+        ${excLinks[r.reserva]?`<a class="exc-link-open" href="${lnk}" target="_blank" rel="noopener" title="Abrir link de pago"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></a>`:''}
+      </div>`;
+    const declined=!!p.declinada;
+    const notasVal=(p.notas||'').replace(/"/g,'&quot;');
+    const notesCell=`<div class="exc-noteswrap">
+        <input type="text" class="exc-notes-input" id="excnotes-${r.reserva}" placeholder="Nota…" value="${notasVal}" onkeydown="if(event.key==='Enter')excSaveNote('${r.reserva}')">
+        <button class="exc-notes-save" onclick="excSaveNote('${r.reserva}')" title="Guardar nota">✓</button>
+      </div>`;
+    const trCls = (done?'paid-row':'') + (declined?' declined-row':'');
+    const mainRow=`<tr class="${trCls}" data-res="${r.reserva}">
+      <td><input type="checkbox" class="exc-chk" ${excSelected.has(r.reserva)?'checked':''} onclick="excToggleSel('${r.reserva}',this.checked)"></td>
+      <td class="exc-res">${r.reserva}${declined?'<span class="exc-decl-pill">Declinada</span>':''}</td>
+      <td><div class="exc-titular">${r.titular||'—'}</div><div class="exc-act">${r.actividad||''}</div></td>
+      <td>${r.fecha||'—'}</td>
+      <td class="exc-net">${fmt(r.neta)}</td>
+      <td class="exc-dop">${dopCell}</td>
+      <td><input type="date" class="exc-cobro-input" value="${p.fecha||''}" onchange="excSetCobro('${r.reserva}',this.value)">${origin}</td>
+      <td>${linkCell}</td>
+      <td>${notesCell}</td>
+      <td><div class="exc-btns">
+        <button class="exc-paybtn ${done?'done':''}" onclick="excTogglePay('${r.reserva}')">${done?'✓ Pagado':'Marcar pagado'}</button>
+        <button class="exc-declbtn ${declined?'active':''}" onclick="excToggleDecline('${r.reserva}')">${declined?'✓ Declinada':'Declinada'}</button>
+      </div></td>
+    </tr>`;
+    const declRow = declined ? `<tr class="exc-declrow" data-res="${r.reserva}"><td></td><td colspan="9">
+        <div class="exc-declbox">
+          <span class="exc-declhead"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Comentario de declinación</span>
+          <input type="text" class="exc-declinput" id="excdecl-${r.reserva}" placeholder="Motivo / comentario…" value="${(p.comentario||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')excSaveDeclineComment('${r.reserva}')">
+          <button class="exc-declsave" onclick="excSaveDeclineComment('${r.reserva}')">Guardar</button>
+          ${p.comentario?`<span class="exc-declshown">“${p.comentario.replace(/</g,'&lt;')}”</span>`:''}
+        </div>
+      </td></tr>` : '';
+    return mainRow + declRow;
+  }).join('');
+
+  list.innerHTML = `<div class="exc-card"><table class="exc-table">
+    <thead><tr>
+      <th style="width:34px"></th><th>ID Reserva</th><th>Titular / Actividad</th>
+      <th>Fecha actividad</th><th>Valor USD</th><th>Valor DOP</th><th>Fecha de cobro</th><th>Link de pago</th><th>Notas</th><th></th>
+    </tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+
+  // paginación
+  let pg='';
+  if(excPerPage!=='all' && totalPages>1){
+    pg+=`<button class="pg-btn" ${excPage===1?'disabled':''} onclick="excGo(${excPage-1})">‹</button>`;
+    for(let i=1;i<=totalPages;i++){
+      if(i===1||i===totalPages||Math.abs(i-excPage)<=1){ pg+=`<button class="pg-btn ${i===excPage?'active':''}" onclick="excGo(${i})">${i}</button>`; }
+      else if(Math.abs(i-excPage)===2){ pg+='<span class="pg-dots">…</span>'; }
+    }
+    pg+=`<button class="pg-btn" ${excPage===totalPages?'disabled':''} onclick="excGo(${excPage+1})">›</button>`;
+  }
+  pager.innerHTML = `<div class="pg-left">${pg}</div><div class="pg-right"><span>Por página:</span>
+    <select onchange="excSetPerPage(this.value)">
+      ${[25,50,100,200].map(n=>`<option value="${n}" ${excPerPage===n?'selected':''}>${n}</option>`).join('')}
+      <option value="all" ${excPerPage==='all'?'selected':''}>Todas</option>
+    </select></div>`;
+  excRenderRates();
+}
+
+function excGo(p){ excPage=p; excRender(); }
+function excSetPerPage(v){ excPerPage = v==='all'?'all':parseInt(v,10); excPage=1; excRender(); }
+function excSetCobro(res,val){
+  excPagos[res]=excPagos[res]||{};
+  if(val){ excPagos[res].fecha=val; excPagos[res].manual=true; }
+  else { excPagos[res].fecha=''; excPagos[res].manual=false; }
+  excSave(); excRender();
+  dbUpsert('excursiones',[rowExc(res)]);
+}
+function excTogglePay(res){
+  excPagos[res]=excPagos[res]||{};
+  excPagos[res].pagado=!excPagos[res].pagado; excSave(); excRender();
+  dbUpsert('excursiones',[rowExc(res)]);
+}
+function excSaveLink(res){
+  const el=document.getElementById('exclink-'+res); if(!el) return;
+  const val=el.value.trim();
+  if(val) excLinks[res]=val; else delete excLinks[res];
+  excSave(); excRender();
+  dbUpsert('excursiones',[rowExc(res)]);
+}
+function excSaveNote(res){
+  const el=document.getElementById('excnotes-'+res); if(!el) return;
+  excPagos[res]=excPagos[res]||{};
+  const v=el.value.trim();
+  if(v) excPagos[res].notas=v; else delete excPagos[res].notas;
+  excSave(); excRender();
+  dbUpsert('excursiones',[rowExc(res)]);
+}
+function excToggleDecline(res){
+  excPagos[res]=excPagos[res]||{};
+  excPagos[res].declinada=!excPagos[res].declinada;
+  if(excPagos[res].declinada) excPagos[res].pagado=false; // declinar quita pagado
+  excSave(); excRender();
+  dbUpsert('excursiones',[rowExc(res)]);
+}
+function excSaveDeclineComment(res){
+  const el=document.getElementById('excdecl-'+res); if(!el) return;
+  excPagos[res]=excPagos[res]||{};
+  const v=el.value.trim();
+  if(v) excPagos[res].comentario=v; else delete excPagos[res].comentario;
+  excSave(); excRender();
+  dbUpsert('excursiones',[rowExc(res)]);
+}
+function excToggleSel(res,on){ on?excSelected.add(res):excSelected.delete(res); excUpdateBulk(); }
+function excToggleSelectAll(on){
+  const visible=EXC_DATA.filter(excMatches);
+  if(on) visible.forEach(r=>excSelected.add(r.reserva)); else excSelected.clear();
+  excRender();
+}
+function excClearSelection(){ excSelected.clear(); excRender(); }
+function excBulkPay(state){
+  const afectadas=[];
+  excSelected.forEach(res=>{ excPagos[res]=excPagos[res]||{}; excPagos[res].pagado=state; afectadas.push(res); });
+  excSave(); excRender();
+  dbUpsert('excursiones', afectadas.map(rowExc).filter(Boolean));
+}
+function excUpdateBulk(){
+  const c=document.getElementById('excBulkCount');
+  const visible=EXC_DATA.filter(excMatches);
+  const selInFilter=visible.filter(r=>excSelected.has(r.reserva)).length;
+  if(c) c.textContent = `${excSelected.size} seleccionadas${visible.length?` (de ${visible.length} del filtro)`:''}`;
+  const all=document.getElementById('excSelAll');
+  if(all){
+    all.checked = visible.length>0 && selInFilter===visible.length;
+    all.indeterminate = selInFilter>0 && selInFilter<visible.length;
+  }
+}
+function excSetRange(){ excDFrom=document.getElementById('excDFrom').value; excDTo=document.getElementById('excDTo').value; excPage=1; excRender(); }
+function excClearRange(){ excDFrom=''; excDTo=''; document.getElementById('excDFrom').value=''; document.getElementById('excDTo').value=''; excPage=1; excRender(); }
+
+function excAddRate(){
+  const d=document.getElementById('excRateDate').value, v=parseFloat(document.getElementById('excRateVal').value);
+  if(!d||!(v>0)){ alert('Indica fecha y tasa válida.'); return; }
+  tasas[d]=Math.round(v*100)/100; save();
+  document.getElementById('excRateVal').value='';
+  excRender(); if(typeof render==='function') render();
+  dbUpsert('tasas',[{fecha:d, valor:tasas[d]}]);
+}
+function excDelRate(d){ delete tasas[d]; save(); excRender(); if(typeof render==='function') render(); dbDelete('tasas','fecha',d); }
+function excRenderRates(){
+  const box=document.getElementById('excRatesList'); if(!box) return;
+  const keys=Object.keys(tasas).sort();
+  box.innerHTML = keys.length? keys.map(d=>`<div class="rate-chip"><span class="rc-date">${fmtFecha(d)}</span><span class="rc-val">${tasas[d].toFixed(2)}</span><button class="rc-del" onclick="excDelRate('${d}')">×</button></div>`).join('') : '<div class="rate-empty">Sin tasas registradas todavía.</div>';
+}
+
+function excSetFilter(f){ excFilter=f; excPage=1; excRender(); }
+
+function excExportXlsx(){
+  const out=EXC_DATA.map(r=>{
+    const p=excPagos[r.reserva]||{};
+    const tasaR=tasaDe(p.fecha);
+    return {
+      'ID Reserva':r.reserva,
+      'Titular':r.titular,
+      'Actividad':r.actividad||'',
+      'Fecha de actividad':r.fecha,
+      'Valor USD':r.neta,
+      'Tasa USD/DOP':tasaR!=null?tasaR:'',
+      'Valor DOP':tasaR!=null?Math.round(r.neta*tasaR*100)/100:'',
+      'Fecha de cobro':p.fecha?fmtFecha(p.fecha):'',
+      'Estado':p.declinada?'Declinada':(p.pagado?'Pagado':'Pendiente'),
+      'Origen fecha':p.fecha?(p.manual?'Manual':'Auto'):'',
+      'Link de pago':excLinks[r.reserva]||'',
+      'Notas':p.notas||'',
+      'Comentario declinación':p.declinada?(p.comentario||''):''
+    };
+  });
+  const ws=XLSX.utils.json_to_sheet(out);
+  ws['!cols']=[{wch:12},{wch:30},{wch:26},{wch:16},{wch:15},{wch:12},{wch:12},{wch:14},{wch:11},{wch:11},{wch:40},{wch:30},{wch:30}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Excursiones');
+  XLSX.writeFile(wb,`Cobros_Excursiones_DPG_${today()}.xlsx`);
+}
+
+// Pestañas
+function switchTab(t){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
+  document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active', p.id==='page-'+t));
+}
+
+document.getElementById('excQ').addEventListener('input',e=>{ excQuery=e.target.value; excPage=1; excRender(); });
+document.getElementById('excFilters').addEventListener('click',e=>{
+  const b=e.target.closest('.chip-btn'); if(!b) return;
+  document.querySelectorAll('#excFilters .chip-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); excSetFilter(b.dataset.f);
+});
+[document.getElementById('excDFrom'),document.getElementById('excDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') excSetRange(); }));
+
+excRender();
+
+</script>
+</body>
+</html>
