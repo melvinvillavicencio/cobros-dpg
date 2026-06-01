@@ -185,6 +185,9 @@
   .group.open .caret{transform:rotate(90deg)}
   .fenix-name-main{font-weight:800;font-size:16.5px;letter-spacing:-.3px;color:var(--ink);line-height:1.2}
   .fenix-id-small{font-weight:700;color:var(--teal-dark)}
+  .fenix-lbl{font-weight:700;color:var(--teal-dark);user-select:none;-webkit-user-select:none}
+  .fenix-num{font-weight:700;color:var(--teal-dark);user-select:all;-webkit-user-select:all}
+  .fenix-rest{user-select:none;-webkit-user-select:none}
   .fenix-meta{font-size:12.5px;color:var(--slate);margin-top:3px}
   .group-head .right{margin-left:auto;display:flex;align-items:center;gap:16px}
   .group-cobro{text-align:center}
@@ -1212,7 +1215,7 @@ function render(){
         <div class="head-id" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer;flex:1">
           <div>
             <div class="fenix-name-main">${g.rows[0].titular||'—'}</div>
-            <div class="fenix-meta"><span class="fenix-id-small">Fénix ${g.fenix}</span> · ${g.rows.length} reserva${g.rows.length>1?'s':''}</div>
+            <div class="fenix-meta"><span class="fenix-lbl">Fénix</span> <span class="fenix-num">${g.fenix}</span><span class="fenix-rest"> · ${g.rows.length} reserva${g.rows.length>1?'s':''}</span></div>
           </div>
         </div>
         <div class="right">
@@ -1942,15 +1945,23 @@ function excToggleSelectAll(on){
 function excClearSelection(){ excSelected.clear(); excRender(); }
 function excBulkPay(state){
   const afectadas=[];
-  excSelected.forEach(res=>{ excPagos[res]=excPagos[res]||{}; excPagos[res].pagado=state; afectadas.push(res); });
+  excSelected.forEach(res=>{
+    excPagos[res]=excPagos[res]||{};
+    excPagos[res].pagado=state;
+    excPagos[res].declinada=false;
+    excPagos[res].cancelada=false;
+    afectadas.push(res);
+  });
   excSave(); excRender();
   dbUpsert('excursiones', afectadas.map(rowExc).filter(Boolean));
 }
 function excUpdateBulk(){
+  const bar=document.getElementById('excBulkbar');
   const c=document.getElementById('excBulkCount');
   const visible=EXC_DATA.filter(excMatches);
   const selInFilter=visible.filter(r=>excSelected.has(r.reserva)).length;
-  if(c) c.textContent = `${excSelected.size} seleccionadas${visible.length?` (de ${visible.length} del filtro)`:''}`;
+  if(bar) bar.classList.toggle('show', excSelected.size>0);
+  if(c) c.textContent = `${excSelected.size} reserva${excSelected.size!==1?'s':''} seleccionada${excSelected.size!==1?'s':''}`;
   const all=document.getElementById('excSelAll');
   if(all){
     all.checked = visible.length>0 && selInFilter===visible.length;
