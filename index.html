@@ -181,7 +181,8 @@
   .exc-head-row{display:flex;align-items:center;gap:16px;position:relative;z-index:1}
   .exc-head-logo{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,.92);box-shadow:0 4px 14px rgba(0,0,0,.12);flex-shrink:0}
   .exc-head-logo svg{width:26px;height:33px;display:block}
-  .caret{transition:transform .2s;color:var(--teal-dark);flex-shrink:0}
+  .caret{transition:transform .2s;color:var(--teal-dark);flex-shrink:0;background:var(--teal-soft);border-radius:8px;padding:3px;box-sizing:content-box}
+  .group-head:hover .caret{background:var(--teal-chip)}
   .group.open .caret{transform:rotate(90deg)}
   .fenix-name-main{font-weight:800;font-size:16.5px;letter-spacing:-.3px;color:var(--ink);line-height:1.2}
   .fenix-id-small{font-weight:700;color:var(--teal-dark)}
@@ -447,7 +448,7 @@
       <button class="chip-btn active" data-f="all">Todas</button>
       <button class="chip-btn" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
-      <button class="chip-btn" data-f="linkok">Links OK</button>
+      <button class="chip-btn" data-f="nolink">Links pendiente</button>
     </div>
     <div class="filterrow">
     <div class="datefilter">
@@ -666,7 +667,7 @@
       <button class="chip-btn active" data-f="all">Todas</button>
       <button class="chip-btn" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
-      <button class="chip-btn" data-f="linkok">Links OK</button>
+      <button class="chip-btn" data-f="nolink">Links pendiente</button>
     </div>
     <div class="filterrow">
     <div class="datefilter">
@@ -1219,10 +1220,10 @@ function matches(g){
   const st = rowState(g);
   if(filter==='paid' && st!=='paid') return false;
   if(filter==='pending' && st==='paid') return false;
-  if(filter==='linkok'){
-    // pendiente (no pagada) Y con link de pago guardado
+  if(filter==='nolink'){
+    // pendiente (no pagada) y SIN link de pago guardado
     if(st==='paid') return false;
-    if(!(links[g.fenix] && links[g.fenix].trim())) return false;
+    if(links[g.fenix] && links[g.fenix].trim()) return false;
   }
   if(dFrom || dTo){
     if(!g.rows.some(r=>{const p=pagos[r.reserva]; return p && inRange(p.fecha);})) return false;
@@ -1286,10 +1287,10 @@ function render(){
       </tr>`;
     }).join('');
     return `<div class="group ${open?'open':''}" data-fenix="${g.fenix}">
-      <div class="group-head">
+      <div class="group-head" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer">
         <span class="ord-num">${ordNum}</span>
         <input type="checkbox" class="sel-chk" ${selected.has(g.fenix)?'checked':''} onclick="event.stopPropagation();toggleSelect('${g.fenix}')" title="Seleccionar">
-        <svg class="caret" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer"><path d="m9 18 6-6-6-6"/></svg>
+        <svg class="caret" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.8" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
         <div class="head-id" style="flex:1">
           <div>
             <div class="fenix-name-main copyable" title="Clic para copiar el nombre" data-copy="${(g.rows[0].titular||'').replace(/"/g,'&quot;')}" onclick="event.stopPropagation();copyFromEl(this)">${g.rows[0].titular||'—'}</div>
@@ -1827,9 +1828,9 @@ function excMatches(r){
   const p=excPagos[r.reserva]||{};
   if(excFilter==='paid' && !p.pagado) return false;
   if(excFilter==='pending' && p.pagado) return false;
-  if(excFilter==='linkok'){
+  if(excFilter==='nolink'){
     if(p.pagado) return false;
-    if(!(excLinks[r.reserva] && excLinks[r.reserva].trim())) return false;
+    if(excLinks[r.reserva] && excLinks[r.reserva].trim()) return false;
   }
   if(excDFrom || excDTo){ if(!excInRange(p.fecha)) return false; }
   if(!excQuery) return true;
