@@ -223,6 +223,10 @@
   .state-motivo.cancel{color:#374151;background:#E5E7EB}
   .del-btn{appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;transition:background .12s}
   .del-btn:hover{background:#FBE0E0}
+  .ord-num{flex:none;min-width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;background:var(--teal-soft);color:var(--teal-dark);font-weight:800;font-size:12.5px;border-radius:8px;padding:0 7px}
+  .exc-ord{font-weight:800;color:var(--teal-dark);text-align:center}
+  .st-dot{color:#fff}
+  .st-dot.link-ok{color:#1Fd65f;text-shadow:0 0 2px rgba(0,0,0,.15)}
   /* Botón de estado compacto dentro de la tabla de excursiones */
   .exc-table .state-btn{font-size:12px;padding:8px 10px;min-width:0;width:100%;border-radius:10px}
   .exc-table .state-wrap{max-width:120px}
@@ -465,7 +469,7 @@
     <label class="bulk-all"><input type="checkbox" id="selAll" onclick="toggleSelectAll(this.checked)"> Seleccionar todo (vista filtrada)</label>
     <span class="bulk-count" id="bulkCount">0 seleccionados</span>
     <div class="bulk-actions">
-      <button class="bulk-btn pay" onclick="bulkPay(true)">Marcar pagado</button>
+      <button class="bulk-btn pay" onclick="bulkPay(true)">Marcar cobrado</button>
       <button class="bulk-btn unpay" onclick="bulkPay(false)">Marcar pendiente</button>
       <button class="bulk-btn clear" onclick="clearSelection()">Limpiar selección</button>
     </div>
@@ -577,7 +581,7 @@
   .exc-declsave:hover{filter:brightness(1.08)}
   .exc-declshown{font-size:13px;color:#7A1610;font-style:italic;background:#fff;border-left:3px solid #B42318;padding:6px 11px;border-radius:0 8px 8px 0;width:100%}
   .exc-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-  .exc-table{min-width:1120px}
+  .exc-table{min-width:1180px}
   /* Login */
   .login-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F7F6,#F4F1FF);padding:20px}
   .login-card{background:#fff;border-radius:22px;box-shadow:0 20px 60px rgba(31,42,51,.18);padding:36px 32px;width:100%;max-width:380px;text-align:center}
@@ -684,7 +688,7 @@
     <label class="bulk-all"><input type="checkbox" id="excSelAll" onclick="excToggleSelectAll(this.checked)"> Seleccionar todas las reservas del filtro</label>
     <span class="bulk-count" id="excBulkCount">0 seleccionados</span>
     <div class="bulk-actions">
-      <button class="bulk-btn pay" onclick="excBulkPay(true)">Marcar pagado</button>
+      <button class="bulk-btn pay" onclick="excBulkPay(true)">Marcar cobrado</button>
       <button class="bulk-btn unpay" onclick="excBulkPay(false)">Marcar pendiente</button>
       <button class="bulk-btn clear" onclick="excClearSelection()">Limpiar selección</button>
     </div>
@@ -831,10 +835,31 @@ async function doLogout(){
   await sb.auth.signOut();
   location.reload();
 }
+
+/* ---- Auto-cierre de sesión por inactividad (10 minutos) ---- */
+const IDLE_MS = 10*60*1000; // 10 minutos
+let idleTimer = null;
+async function idleLogout(){
+  try{ await sb.auth.signOut(); }catch(e){}
+  // recargar mostrando aviso
+  sessionStorage.setItem('idleClosed','1');
+  location.reload();
+}
+function resetIdleTimer(){
+  if(idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(idleLogout, IDLE_MS);
+}
+function startIdleWatch(){
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev=>{
+    document.addEventListener(ev, resetIdleTimer, {passive:true});
+  });
+  resetIdleTimer();
+}
 async function startApp(user){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('appShell').style.display='block';
   document.getElementById('sessionUser').textContent=user.email||'';
+  startIdleWatch();
   await loadAllFromDB();
 }
 
@@ -964,7 +989,14 @@ function rowExc(reserva){
 window.addEventListener('load', async ()=>{
   const { data } = await sb.auth.getSession();
   if(data && data.session){ await startApp(data.session.user); }
-  else { document.getElementById('loginScreen').style.display='flex'; }
+  else {
+    document.getElementById('loginScreen').style.display='flex';
+    if(sessionStorage.getItem('idleClosed')){
+      sessionStorage.removeItem('idleClosed');
+      const e=document.getElementById('loginErr');
+      if(e){ e.textContent='Tu sesión se cerró por inactividad. Vuelve a entrar.'; e.style.color='#9A6A00'; }
+    }
+  }
 });
 
 let DATA =
@@ -1114,7 +1146,7 @@ function renderKpis(visible){
   } else {
     visible.forEach(g=>{ if(g.rows.length>1) nDobles+=g.rows.length; else nUnicas+=g.rows.length; });
   }
-  const ventaSub = `<span class="vsub-main">${rows.length} reservas${hayFiltro?` de ${totalGlobal} (filtrado)`:''}</span>`
+  const ventaSub = `<span class="vsub-main">${rows.length} reserva${rows.length!==1?'s':''}${hayFiltro?' (filtrado)':''}</span>`
     + `<span class="vsub-li">${nUnicas} únicas</span>`
     + `<span class="vsub-li">${nDobles} en grupo</span>`;
   const k=[
@@ -1180,7 +1212,9 @@ function render(){
   if(page<1) page=1;
   const slice = perPage==='all' ? visible : visible.slice((page-1)*perPage, page*perPage);
 
-  list.innerHTML = slice.map(g=>{
+  const ordBase = (perPage==='all'?0:(page-1)*perPage);
+  list.innerHTML = slice.map((g,idx)=>{
+    const ordNum = ordBase + idx + 1;
     const st=rowState(g);
     const total=g.rows.reduce((a,r)=>a+r.neta,0);
     const pillTxt = st==='paid'?'Pagado': st==='partial'?'Parcial': st==='declined'?'Declinada':'Pendiente';
@@ -1210,6 +1244,7 @@ function render(){
     }).join('');
     return `<div class="group ${open?'open':''}" data-fenix="${g.fenix}">
       <div class="group-head">
+        <span class="ord-num">${ordNum}</span>
         <input type="checkbox" class="sel-chk" ${selected.has(g.fenix)?'checked':''} onclick="event.stopPropagation();toggleSelect('${g.fenix}')" title="Seleccionar">
         <svg class="caret" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer"><path d="m9 18 6-6-6-6"/></svg>
         <div class="head-id" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer;flex:1">
@@ -1223,7 +1258,7 @@ function render(){
           <div class="group-total"><div class="lbl">Total a cobrar</div><div class="amt-row"><span class="amt-usd">USD: ${fmt(total).replace('$','')}</span><span class="amt-sep">-</span><span class="amt-dop">${totalDop!=null?dopParts(totalDop):'<span class="dop-none">sin tasa</span>'}</span></div></div>
           <div class="state-wrap">
             <button class="state-btn ${st}" onclick="event.stopPropagation();cycleState('${g.fenix}')" title="Clic para cambiar el estado">
-              ${st==='paid'?'✓ Pagado': st==='declined'?'✕ Declinada': st==='cancelled'?'⊘ Cancelada': st==='partial'?'◑ Parcial':'● Pendiente'}
+              ${st==='paid'?'✓ Pagado': st==='declined'?'✕ Declinada': st==='cancelled'?'⊘ Cancelada': st==='partial'?'◑ Parcial':`<span class="st-dot${(links[g.fenix]&&links[g.fenix].trim())?' link-ok':''}">●</span> Pendiente`}
             </button>
             ${cancelled&&m.comentarioCancel?`<span class="state-motivo cancel" title="${m.comentarioCancel.replace(/"/g,'&quot;')}">⊘ ${m.comentarioCancel.replace(/</g,'&lt;')}</span>`
               :declined&&m.comentario?`<span class="state-motivo" title="${m.comentario.replace(/"/g,'&quot;')}">✕ ${m.comentario.replace(/</g,'&lt;')}</span>`:''}
@@ -1771,7 +1806,7 @@ function excRenderKpis(visible){
   });
   const comision=cobrado*0.035, depositar=cobrado-comision;
   const depDopStr = nPaid===0?'':(`<span class="dep-dop">${dopParts(depDop)}</span>`+(faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa; no suman al DOP">⚠</span>':''));
-  const ventaSub=`<span class="vsub-main">${visible.length} excursiones${hayFiltro?` de ${totalGlobal} (filtrado)`:''}</span>`;
+  const ventaSub=`<span class="vsub-main">${visible.length} excursion${visible.length!==1?'es':''}${hayFiltro?' (filtrado)':''}</span>`;
   const k=[
     {c:'amber',i:'<svg width="18" height="18" fill="none" stroke="#F5A623" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',l:'Total venta',v:fmt(total),s:ventaSub},
     {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',l:'Cobrado',v:fmt(cobrado),s:nPaid+' excursiones pagadas'},
@@ -1800,7 +1835,9 @@ function excRender(){
   if(excPage>totalPages) excPage=totalPages; if(excPage<1) excPage=1;
   const slice = excPerPage==='all'?visible:visible.slice((excPage-1)*excPerPage, excPage*excPerPage);
 
-  const rowsHtml = slice.map(r=>{
+  const excOrdBase = (excPerPage==='all'?0:(excPage-1)*excPerPage);
+  const rowsHtml = slice.map((r,idx)=>{
+    const excOrdNum = excOrdBase + idx + 1;
     const p=excPagos[r.reserva]||{};
     const done=!!p.pagado;
     const tasaR=tasaDe(p.fecha);
@@ -1829,6 +1866,7 @@ function excRender(){
       : '';
     const mainRow=`<tr class="${trCls}" data-res="${r.reserva}">
       <td><input type="checkbox" class="exc-chk" ${excSelected.has(r.reserva)?'checked':''} onclick="excToggleSel('${r.reserva}',this.checked)"></td>
+      <td class="exc-ord">${excOrdNum}</td>
       <td class="exc-res">${r.reserva}</td>
       <td><div class="exc-titular">${r.titular||'—'}</div><div class="exc-act">${r.actividad||''}</div></td>
       <td>${r.fecha||'—'}</td>
@@ -1839,7 +1877,7 @@ function excRender(){
       <td>${notesCell}</td>
       <td><div class="state-wrap">
         <button class="state-btn ${est}" onclick="excCycleState('${r.reserva}')" title="Clic para cambiar el estado">
-          ${est==='paid'?'✓ Pagado': est==='declined'?'✕ Declinada': est==='cancelled'?'⊘ Cancelada':'● Pendiente'}
+          ${est==='paid'?'✓ Pagado': est==='declined'?'✕ Declinada': est==='cancelled'?'⊘ Cancelada':`<span class="st-dot${(excLinks[r.reserva]&&excLinks[r.reserva].trim())?' link-ok':''}">●</span> Pendiente`}
         </button>
         ${motivoPill}
       </div></td>
@@ -1850,7 +1888,7 @@ function excRender(){
 
   list.innerHTML = `<div class="exc-card"><table class="exc-table">
     <thead><tr>
-      <th style="width:34px"></th><th>ID Reserva</th><th>Titular / Actividad</th>
+      <th style="width:34px"></th><th style="width:40px">#</th><th>ID Reserva</th><th>Titular / Actividad</th>
       <th>Fecha actividad</th><th>Valor USD</th><th>Valor DOP</th><th>Fecha de cobro</th><th>Link de pago</th><th>Notas</th><th></th><th></th>
     </tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
 
