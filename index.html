@@ -187,13 +187,14 @@
   .fenix-id-small{font-weight:700;color:var(--teal-dark)}
   .fenix-meta{font-size:12.5px;color:var(--slate);margin-top:3px}
   .group-head .right{margin-left:auto;display:flex;align-items:center;gap:16px}
-  .group-total,.group-cobro{text-align:right}
-  .group-total .lbl,.group-cobro .lbl{font-size:11px;color:var(--slate);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .group-cobro{text-align:center}
+  .group-total{text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .group-total .lbl,.group-cobro .lbl{font-size:11px;color:var(--slate);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
   .group-total .amt{font-size:18px;font-weight:800;color:var(--ink)}
   .amt-usd{font-size:16px;font-weight:800;color:var(--ink)}
   .amt-sep{color:var(--slate);font-weight:700}
-  .amt-row{display:flex;align-items:baseline;gap:8px;justify-content:flex-end}
-  .group-total .amt-dop{font-size:13px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:2px 8px;border-radius:7px}
+  .amt-row{display:flex;align-items:center;gap:8px;justify-content:center}
+  .group-total .amt-dop{font-size:13px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:3px 9px;border-radius:7px}
   .group-cobro .cdate{font-size:15px;font-weight:700;color:var(--teal-dark);font-variant-numeric:tabular-nums}
   .stat-pill{
     padding:6px 13px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;
@@ -202,6 +203,25 @@
   .stat-pill.paid{background:var(--green-soft);color:var(--green)}
   .stat-pill.partial{background:#FCE3EA;color:var(--magenta-dark)}
   .stat-pill.declined{background:#FBE0E0;color:#B42318}
+  /* Botón único de estado cíclico */
+  .state-btn{
+    appearance:none;border:1.5px solid transparent;cursor:pointer;font-family:inherit;font-weight:700;
+    font-size:13.5px;padding:10px 18px;border-radius:12px;white-space:nowrap;min-width:130px;
+    transition:filter .12s,background .12s;
+  }
+  .state-btn:hover{filter:brightness(1.04)}
+  .state-btn.pending{background:var(--amber);color:#fff}
+  .state-btn.paid{background:var(--green);color:#fff}
+  .state-btn.declined{background:#B42318;color:#fff}
+  .state-btn.partial{background:var(--magenta);color:#fff}
+  .state-btn.cancelled{background:#6B7280;color:#fff}
+  .state-wrap{display:flex;flex-direction:column;align-items:stretch;gap:5px;max-width:150px}
+  .state-motivo{font-size:11.5px;color:#B42318;background:#FBE0E0;border-radius:8px;padding:3px 9px;font-weight:600;font-style:italic;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+  .state-motivo.cancel{color:#374151;background:#E5E7EB}
+  /* Botón de estado compacto dentro de la tabla de excursiones */
+  .exc-table .state-btn{font-size:12px;padding:8px 10px;min-width:0;width:100%;border-radius:10px}
+  .exc-table .state-wrap{max-width:120px}
+  .exc-table .state-motivo{font-size:10.5px;max-width:120px;padding:3px 7px}
   .decline-btn{
     appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;
     font-family:inherit;font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:11px;white-space:nowrap;transition:background .12s,filter .12s;
@@ -246,6 +266,7 @@
   .dop-none{font-weight:700;color:#C2671A;background:#FFF1E8;padding:2px 8px;border-radius:7px;font-size:12px}
   .dop-rate{font-size:10px;font-weight:600;color:var(--slate);margin-left:6px}
   .paylink{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#F7FAFF;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .paylink-bottom{border-bottom:none;border-top:1px solid var(--line)}
   .paylink-lbl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#2F6BE0;white-space:nowrap}
   .paylink input{flex:1;min-width:200px;border:1.5px solid var(--line);border-radius:10px;padding:8px 11px;font-family:inherit;font-size:13px;color:var(--ink);outline:none}
   .paylink input:focus{border-color:#2F6BE0}
@@ -277,6 +298,13 @@
   .rate-date{font-weight:600;color:var(--ink)}
   .rate-num{font-weight:800;color:#2F6BE0}
   .rate-del{border:none;background:rgba(47,107,224,.15);color:#2F6BE0;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:11px;font-weight:700;line-height:1}
+  .rate-search{margin:12px 0 10px}
+  .rate-search input{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:11px;padding:10px 13px;font-family:inherit;font-size:13.5px;color:var(--ink);background:#fff}
+  .rate-search input:focus{border-color:var(--teal);outline:none}
+  .rates-foot{display:flex;align-items:center;gap:12px;margin-top:12px;font-size:12.5px;color:var(--slate)}
+  .rates-count{color:var(--slate)}
+  .rates-toggle{appearance:none;border:1.5px solid var(--teal-chip);background:var(--teal-soft);color:var(--teal-dark);cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;padding:6px 13px;border-radius:9px}
+  .rates-toggle:hover{background:var(--teal);color:#fff}
   .rate-del:hover{background:rgba(47,107,224,.3)}
   .empty{text-align:center;padding:50px 20px;color:var(--slate)}
   .fecha-cobro input{
@@ -323,7 +351,7 @@
   footer{text-align:center;color:var(--slate);font-size:12px;margin-top:30px}
 
   @media(max-width:680px){
-    .group-head .right{flex-direction:column;align-items:flex-end;gap:6px}
+    .group-head .right{flex-direction:column;align-items:center;gap:8px}
     thead{display:none}
     tbody td{display:flex;justify-content:space-between;padding:9px 16px;border:none}
     tbody td::before{content:attr(data-l);font-weight:700;color:var(--slate);font-size:11px;text-transform:uppercase}
@@ -370,6 +398,10 @@
     <button class="tab-btn" data-tab="excursiones" onclick="switchTab('excursiones')">
       <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/></svg></span>
       Excursiones <span class="tab-count" id="tabCountExc">0</span>
+    </button>
+    <button class="tab-btn" data-tab="reporte" onclick="switchTab('reporte')">
+      <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3v18h18M8 17V9M13 17V5M18 17v-6"/></svg></span>
+      Reporte Azul
     </button>
   </div>
 
@@ -445,7 +477,11 @@
         <input type="number" step="0.01" min="0" id="rateVal" placeholder="Tasa (ej. 58.60)">
         <button class="chip-btn df-search" onclick="addRate()">Guardar tasa</button>
       </div>
+      <div class="rate-search">
+        <input type="text" id="rateSearch" placeholder="Buscar por fecha (ej. 13/05 o 2026-05) o valor…" oninput="renderRates()">
+      </div>
       <div id="ratesList" class="rates-list"></div>
+      <div class="rates-foot" id="ratesFoot"></div>
     </div>
   </div>
 
@@ -467,6 +503,17 @@
   .im-cancel{background:#f0f0f3;color:#444;border:none;border-radius:10px;padding:11px 18px;font-weight:600;cursor:pointer}
   .im-ok{background:linear-gradient(135deg,var(--magenta),var(--magenta-dark));color:#fff;border:none;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer}
   .im-ok:disabled{opacity:.5;cursor:not-allowed}
+  /* Modal de declinación */
+  .dm-box{max-width:440px}
+  .dm-head{display:flex;align-items:center;gap:11px;padding:20px 24px;font-size:18px;font-weight:800;color:#fff;background:#B42318}
+  .dm-icon{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18)}
+  .dm-body{padding:22px 24px 24px}
+  .dm-text{margin:0 0 16px;color:var(--slate);font-size:14.5px;line-height:1.5}
+  .dm-input{width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;font-family:inherit;font-size:15px;color:var(--ink);background:#fff}
+  .dm-input:focus{border-color:#B42318;outline:none;box-shadow:0 0 0 3px rgba(180,35,24,.12)}
+  .dm-err{color:#B42318;font-size:13.5px;font-weight:600;margin-top:10px;min-height:18px}
+  .dm-confirm{background:#B42318;color:#fff;border:none;border-radius:11px;padding:11px 22px;font-family:inherit;font-weight:700;font-size:14.5px;cursor:pointer;transition:filter .12s}
+  .dm-confirm:hover{filter:brightness(1.08)}
   .vsub-main{display:block}
   .vsub-li{display:block;padding-left:14px;position:relative;font-size:12px;opacity:.85;margin-top:2px}
   .vsub-li::before{content:'•';position:absolute;left:2px;color:var(--teal-dark)}
@@ -475,6 +522,8 @@
   .exc-table{width:100%;border-collapse:collapse}
   .exc-table thead th{background:var(--teal-soft);color:var(--teal-dark);font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:800;text-align:left;padding:11px 9px;border-bottom:2px solid var(--teal-chip)}
   .exc-table tbody td{padding:11px 9px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:middle}
+  .exc-table thead th:first-child,.exc-table tbody td:first-child{padding-left:18px}
+  .exc-table thead th:last-child,.exc-table tbody td:last-child{padding-right:18px}
   .exc-table tbody tr:hover{background:var(--teal-soft)}
   .exc-table tbody tr.paid-row{background:var(--green-soft)}
   .exc-table tbody tr.paid-row:hover{background:#d6efdd}
@@ -494,14 +543,14 @@
   .exc-paybtn.done{background:var(--green)}
   .exc-paybtn:hover{filter:brightness(1.06)}
   .exc-linkwrap{display:flex;align-items:center;gap:5px}
-  .exc-link-input{width:110px;min-width:80px;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff}
+  .exc-link-input{width:90px;min-width:70px;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff}
   .exc-link-input:focus{border-color:var(--teal);outline:none}
   .exc-link-save{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:11px;padding:7px 9px;border-radius:9px;background:var(--teal-soft);color:var(--teal-dark);border:1.5px solid var(--teal-chip);white-space:nowrap}
   .exc-link-save:hover{background:var(--teal);color:#fff}
   .exc-link-open{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:var(--magenta);color:#fff;text-decoration:none;flex-shrink:0}
   .exc-link-open:hover{filter:brightness(1.08)}
   .exc-noteswrap{display:flex;align-items:center;gap:5px}
-  .exc-notes-input{width:90px;min-width:70px;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff}
+  .exc-notes-input{width:75px;min-width:60px;border:1.5px solid var(--line);border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12px;color:var(--ink);background:#fff}
   .exc-notes-input:focus{border-color:var(--teal);outline:none}
   .exc-notes-save{appearance:none;border:1.5px solid var(--teal-chip);cursor:pointer;font-family:inherit;font-weight:800;font-size:13px;width:30px;height:30px;border-radius:9px;background:var(--teal-soft);color:var(--teal-dark);flex-shrink:0}
   .exc-notes-save:hover{background:var(--teal);color:#fff}
@@ -512,6 +561,7 @@
   .exc-declbtn.active:hover{filter:brightness(1.08)}
   .exc-decl-pill{display:inline-block;margin-left:8px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;background:#FBE0E0;color:#B42318;padding:2px 7px;border-radius:8px;vertical-align:middle}
   tr.declined-row td{background:#FFF7F7}
+  tr.cancelled-row td{background:#F4F4F6}
   tr.exc-declrow td{background:#FFF5F5;border-bottom:1px solid var(--line);padding:0 14px 12px}
   .exc-declbox{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding-top:2px}
   .exc-declhead{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:#B42318;white-space:nowrap}
@@ -521,7 +571,7 @@
   .exc-declsave:hover{filter:brightness(1.08)}
   .exc-declshown{font-size:13px;color:#7A1610;font-style:italic;background:#fff;border-left:3px solid #B42318;padding:6px 11px;border-radius:0 8px 8px 0;width:100%}
   .exc-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-  .exc-table{min-width:1080px}
+  .exc-table{min-width:1040px}
   /* Login */
   .login-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F7F6,#F4F1FF);padding:20px}
   .login-card{background:#fff;border-radius:22px;box-shadow:0 20px 60px rgba(31,42,51,.18);padding:36px 32px;width:100%;max-width:380px;text-align:center}
@@ -546,6 +596,29 @@
   .session-user{color:var(--slate)}
   .session-logout{appearance:none;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-family:inherit;font-weight:700;font-size:12.5px;padding:7px 13px;border-radius:9px;color:var(--ink)}
   .session-logout:hover{background:#F4F4F6}
+  /* Reporte Azul */
+  .rep-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .rep-table{width:100%;min-width:1320px;border-collapse:collapse}
+  .rep-table thead th{background:#E3ECFD;color:#2F6BE0;font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:800;text-align:center;padding:12px 14px;border-bottom:2px solid #B9D0F7;white-space:nowrap}
+  .rep-table tbody td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .rep-table tbody td:first-child{font-weight:700;color:var(--ink)}
+  .rep-table tbody tr:hover{background:#F5F8FE}
+  .rep-pago{font-weight:700;color:#1E4FB0}
+  .rep-usd-dop{font-size:12px;font-weight:700;color:#2F6BE0;margin-top:2px}
+  .rep-valdop{font-weight:700;color:#2F6BE0}
+  .rep-tras{font-weight:700;color:var(--magenta-dark)}
+  .rep-exc{font-weight:700;color:var(--teal-dark)}
+  .rep-zero{color:#C4C8D0;font-weight:400}
+  .rep-day{font-weight:700}
+  .rep-sub{font-size:12px;color:var(--slate);font-weight:500}
+  .rep-usd{font-weight:700}
+  .rep-com{color:var(--magenta-dark)}
+  .rep-dep{font-weight:800;color:#2F6BE0}
+  .rep-dop{color:#2F6BE0;font-weight:700}
+  .rep-notasa{color:var(--amber);font-weight:700;font-size:12.5px}
+  .rep-table tfoot td{padding:14px;border-top:2px solid #B9D0F7;background:#F5F8FE;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;font-size:14.5px}
+  .rep-table tfoot td:first-child{color:#2F6BE0}
+  .rep-empty{padding:50px 20px;text-align:center;color:var(--slate);background:#fff;border:1px solid var(--line);border-radius:16px}
   </style>
   </div><!-- /page-traslados -->
 
@@ -622,13 +695,54 @@
         <input type="number" step="0.01" min="0" id="excRateVal" placeholder="Tasa (ej. 58.60)">
         <button class="chip-btn df-search" onclick="excAddRate()">Guardar tasa</button>
       </div>
+      <div class="rate-search">
+        <input type="text" id="excRateSearch" placeholder="Buscar por fecha (ej. 13/05 o 2026-05) o valor…" oninput="excRenderRates()">
+      </div>
       <div id="excRatesList" class="rates-list"></div>
+      <div class="rates-foot" id="excRatesFoot"></div>
     </div>
   </div>
 
   <div id="excList"></div>
   <div id="excPager" class="pager"></div>
   </div><!-- /page-excursiones -->
+
+  <div class="tabpage" id="page-reporte">
+  <header class="top" style="background:linear-gradient(135deg,#2F6BE0 0%,#1E4FB0 100%);box-shadow:0 10px 30px rgba(47,107,224,.28)">
+    <div class="exc-head-row">
+      <span class="exc-head-logo" style="background:rgba(255,255,255,.92)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2F6BE0" stroke-width="2.2" width="26" height="26"><path d="M3 3v18h18M8 17V9M13 17V5M18 17v-6"/></svg>
+      </span>
+      <div>
+        <h1>Reporte de pagos · Azul</h1>
+        <p>Lo que Azul debe depositar, por día de cobro · solo reservas pagadas · comisión 3.5%</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="kpis" id="repKpis"></div>
+
+  <div class="toolbar">
+    <div class="filterrow" style="justify-content:space-between">
+      <div class="datefilter">
+        <span class="df-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Rango de fecha de cobro</span>
+        <input type="date" id="repDFrom">
+        <span class="df-sep">→</span>
+        <input type="date" id="repDTo">
+        <button class="chip-btn df-search" onclick="repSetRange()">Buscar</button>
+        <button class="chip-btn df-clear" onclick="repClearRange()">Limpiar</button>
+      </div>
+      <div class="data-actions">
+        <button class="act-btn export" onclick="repExportXlsx()">
+          <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg></span>
+          Exportar a Excel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="repList"></div>
+  </div><!-- /page-reporte -->
 
   <footer>DPG · Datos guardados en tu base de datos (Supabase)</footer>
 
@@ -640,6 +754,24 @@
       <div class="im-actions">
         <button class="im-cancel" onclick="cancelImport()">Cancelar</button>
         <button class="im-ok" id="imConfirm" onclick="confirmImport()">Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="declineModal" class="im-overlay">
+    <div class="im-box dm-box">
+      <div class="dm-head">
+        <span class="dm-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span>
+        <span id="declineModalTitle">Declinar reserva</span>
+      </div>
+      <div class="dm-body">
+        <p class="dm-text" id="declineModalText">Escribe el motivo de la declinación. Es obligatorio para confirmar.</p>
+        <input type="text" id="declineModalInput" class="dm-input" placeholder="Motivo de la declinación…" onkeydown="if(event.key==='Enter')confirmDeclineModal()">
+        <div id="declineModalErr" class="dm-err"></div>
+        <div class="im-actions" style="padding:0">
+          <button class="im-cancel" onclick="cancelDeclineModal()">Cancelar</button>
+          <button class="dm-confirm" id="declineModalOk" onclick="confirmDeclineModal()">Declinar reserva</button>
+        </div>
       </div>
     </div>
   </div>
@@ -700,14 +832,14 @@ async function loadAllFromDB(){
     }
     meta={}; links={};
     tmeta.forEach(m=>{
-      meta[m.fenix]={ notas:m.notas||'', declinada:!!m.declinada, comentario:m.comentario||'' };
+      meta[m.fenix]={ notas:m.notas||'', declinada:!!m.declinada, comentario:m.comentario||'', cancelada:!!m.cancelada, comentarioCancel:m.comentario_cancel||'' };
       if(m.link) links[m.fenix]=m.link;
     });
     if(exc.length){
       EXC_DATA = exc.map(r=>({reserva:r.reserva, fecha:r.fecha, titular:r.titular, actividad:r.actividad, neta:Number(r.neta)||0}));
       excPagos={}; excLinks={};
       exc.forEach(r=>{
-        excPagos[r.reserva]={ fecha:r.pago_fecha||'', manual:!!r.pago_manual, pagado:!!r.pagado, declinada:!!r.declinada, comentario:r.comentario||'', notas:r.notas||'' };
+        excPagos[r.reserva]={ fecha:r.pago_fecha||'', manual:!!r.pago_manual, pagado:!!r.pagado, declinada:!!r.declinada, comentario:r.comentario||'', notas:r.notas||'', cancelada:!!r.cancelada, comentarioCancel:r.comentario_cancel||'' };
         if(r.link) excLinks[r.reserva]=r.link;
       });
     }
@@ -716,6 +848,7 @@ async function loadAllFromDB(){
 
     rebuild(); render();
     excRebuild(); excRender();
+    if(typeof repRender==='function') repRender();
     setSync('ok');
   }catch(e){
     console.error(e); setSync('error');
@@ -754,14 +887,15 @@ function rowTraslado(reserva){
 }
 function rowMeta(fenix){
   const m=meta[fenix]||{};
-  return { fenix:fenix, notas:m.notas||null, declinada:!!m.declinada, comentario:m.comentario||null, link:links[fenix]||null };
+  return { fenix:fenix, notas:m.notas||null, declinada:!!m.declinada, comentario:m.comentario||null, cancelada:!!m.cancelada, comentario_cancel:m.comentarioCancel||null, link:links[fenix]||null };
 }
 function rowExc(reserva){
   const r=EXC_DATA.find(x=>x.reserva===reserva); if(!r) return null;
   const p=excPagos[reserva]||{};
   return { reserva:r.reserva, fecha:r.fecha, titular:r.titular, actividad:r.actividad, neta:r.neta,
            pago_fecha:p.fecha||null, pago_manual:!!p.manual, pagado:!!p.pagado,
-           declinada:!!p.declinada, comentario:p.comentario||null, notas:p.notas||null, link:excLinks[reserva]||null };
+           declinada:!!p.declinada, comentario:p.comentario||null, notas:p.notas||null, link:excLinks[reserva]||null,
+           cancelada:!!p.cancelada, comentario_cancel:p.comentarioCancel||null };
 }
 
 window.addEventListener('load', async ()=>{
@@ -867,6 +1001,7 @@ let dFrom = '';
 let dTo = '';
 
 function rowState(g){
+  if(meta[g.fenix] && meta[g.fenix].cancelada) return 'cancelled';
   if(meta[g.fenix] && meta[g.fenix].declinada) return 'declined';
   const paid = g.rows.filter(r=>pagos[r.reserva]&&pagos[r.reserva].pagado).length;
   if(paid===0) return 'pending';
@@ -962,6 +1097,7 @@ function render(){
     const pillTxt = st==='paid'?'Pagado': st==='partial'?'Parcial': st==='declined'?'Declinada':'Pendiente';
     const m = meta[g.fenix]||{};
     const declined = !!m.declinada;
+    const cancelled = !!m.cancelada;
     const groupCobro = (pagos[g.rows[0].reserva]||{}).fecha || g.cobroAuto || '';
     const tasaG = tasaDe(groupCobro);
     const totalDop = tasaG!=null ? total * tasaG : null;
@@ -995,35 +1131,28 @@ function render(){
         <div class="right">
           <div class="group-cobro"><div class="lbl">Fecha de cobro</div><div class="cdate">${groupCobro ? fmtFecha(groupCobro) : '—'}</div></div>
           <div class="group-total"><div class="lbl">Total a cobrar</div><div class="amt-row"><span class="amt-usd">USD: ${fmt(total).replace('$','')}</span><span class="amt-sep">-</span><span class="amt-dop">${totalDop!=null?dopParts(totalDop):'<span class="dop-none">sin tasa</span>'}</span></div></div>
-          <span class="stat-pill ${st}">${pillTxt}</span>
-          <button class="pay-btn ${st==='paid'?'done':''}" onclick="event.stopPropagation();toggleGroupPay('${g.fenix}')">${st==='paid'?'✓ Pagado':'Marcar pagado'}</button>
-          <button class="decline-btn ${declined?'active':''}" onclick="event.stopPropagation();toggleDecline('${g.fenix}')">${declined?'✓ Declinada':'Declinada'}</button>
+          <div class="state-wrap">
+            <button class="state-btn ${st}" onclick="event.stopPropagation();cycleState('${g.fenix}')" title="Clic para cambiar el estado">
+              ${st==='paid'?'✓ Pagado': st==='declined'?'✕ Declinada': st==='cancelled'?'⊘ Cancelada': st==='partial'?'◑ Parcial':'● Pendiente'}
+            </button>
+            ${cancelled&&m.comentarioCancel?`<span class="state-motivo cancel" title="${m.comentarioCancel.replace(/"/g,'&quot;')}">⊘ ${m.comentarioCancel.replace(/</g,'&lt;')}</span>`
+              :declined&&m.comentario?`<span class="state-motivo" title="${m.comentario.replace(/"/g,'&quot;')}">✕ ${m.comentario.replace(/</g,'&lt;')}</span>`:''}
+          </div>
         </div>
       </div>
       <div class="group-body">
-        <div class="paylink">
+        <table><thead><tr>
+          <th>ID Reserva</th><th>Fecha traslado</th><th>Modalidad</th>
+          <th>Tarifa neta</th><th>Valor DOP</th><th>Fecha de cobro</th>
+        </tr></thead><tbody>${rowsHtml}</tbody></table>
+        <div class="paylink paylink-bottom">
           <span class="paylink-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg> Link de pago</span>
-          <input type="url" id="link-${g.fenix}" placeholder="https://… (link de pago del Fénix)" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')">
+          <input type="url" id="link-${g.fenix}" placeholder="Pega el link de pago y dale a Guardar" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')">
           <button class="paylink-save" onclick="saveLink('${g.fenix}')">Guardar</button>
           ${justSavedLink===g.fenix?'<span class="paylink-ok">✓ Guardado</span>':''}
           ${links[g.fenix]?`<a class="paylink-open" href="${links[g.fenix].replace(/"/g,'&quot;')}" target="_blank" rel="noopener">Abrir</a>`:''}
           <span class="paylink-dop">${totalDop!=null?dopParts(totalDop):'<span class="dop-none">sin tasa</span>'}</span>
         </div>
-        <div class="notes-row">
-          <span class="notes-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/></svg> Notas</span>
-          <input type="text" class="notes-input" id="notes-${g.fenix}" placeholder="Agregar nota…" value="${(m.notas||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveNote('${g.fenix}')">
-          <button class="notes-save" onclick="saveNote('${g.fenix}')">Guardar</button>
-        </div>
-        ${declined?`<div class="decline-box">
-          <div class="decline-head"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Reserva declinada</div>
-          <input type="text" class="decline-input" id="decline-${g.fenix}" placeholder="Motivo / comentario de la declinación…" value="${(m.comentario||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveDeclineComment('${g.fenix}')">
-          <button class="decline-save" onclick="saveDeclineComment('${g.fenix}')">Guardar comentario</button>
-          ${m.comentario?`<div class="decline-shown">“${m.comentario.replace(/</g,'&lt;')}”</div>`:''}
-        </div>`:''}
-        <table><thead><tr>
-          <th>ID Reserva</th><th>Fecha traslado</th><th>Modalidad</th>
-          <th>Tarifa neta</th><th>Valor DOP</th><th>Fecha de cobro</th>
-        </tr></thead><tbody>${rowsHtml}</tbody></table>
       </div>
     </div>`;
   }).join('');
@@ -1130,16 +1259,45 @@ function addRate(){
   dbUpsert('tasas',[{fecha:d, valor:tasas[d]}]);
 }
 function removeRate(iso){ delete tasas[iso]; save(); render(); if(typeof excRender==='function') excRender(); dbDelete('tasas','fecha',iso); }
-function renderRates(){
-  const cont=document.getElementById('ratesList');
-  const keys=Object.keys(tasas).sort();
-  if(!keys.length){ cont.innerHTML='<div class="rates-empty">Aún no has registrado tasas. Sin tasa para la fecha de cobro, el DOP no se calcula.</div>'; return; }
-  cont.innerHTML = keys.map(iso=>`
-    <div class="rate-item">
+let ratesShowAll=false, excRatesShowAll=false;
+const RATES_RECENT=12;
+// Filtra y ordena (más reciente primero). q busca en fecha dd/mm/aaaa, ISO, o valor.
+function filterRateKeys(q){
+  let keys=Object.keys(tasas).sort().reverse(); // descendente: recientes primero
+  q=(q||'').trim().toLowerCase();
+  if(q){
+    keys=keys.filter(iso=>{
+      const f=fmtFecha(iso).toLowerCase();        // 13/05/2026
+      const val=Number(tasas[iso]).toFixed(2);
+      return iso.includes(q) || f.includes(q) || val.includes(q);
+    });
+  }
+  return keys;
+}
+function rateChipHtml(iso, delFn){
+  return `<div class="rate-item">
       <span class="rate-date">${fmtFecha(iso)}</span>
       <span class="rate-num">${Number(tasas[iso]).toFixed(2)}</span>
-      <button class="rate-del" onclick="removeRate('${iso}')" title="Eliminar">✕</button>
-    </div>`).join('');
+      <button class="rate-del" onclick="${delFn}('${iso}')" title="Eliminar">✕</button>
+    </div>`;
+}
+function renderRates(){
+  const cont=document.getElementById('ratesList');
+  const foot=document.getElementById('ratesFoot');
+  const q=(document.getElementById('rateSearch')||{}).value||'';
+  const all=filterRateKeys(q);
+  if(!Object.keys(tasas).length){ cont.innerHTML='<div class="rates-empty">Aún no has registrado tasas. Sin tasa para la fecha de cobro, el DOP no se calcula.</div>'; if(foot)foot.innerHTML=''; return; }
+  if(!all.length){ cont.innerHTML='<div class="rates-empty">No hay tasas que coincidan con tu búsqueda.</div>'; if(foot)foot.innerHTML=''; return; }
+  const shown = (q.trim()||ratesShowAll) ? all : all.slice(0,RATES_RECENT);
+  cont.innerHTML = shown.map(iso=>rateChipHtml(iso,'removeRate')).join('');
+  if(foot){
+    if(q.trim()){ foot.innerHTML=`<span class="rates-count">${all.length} resultado${all.length!==1?'s':''}</span>`; }
+    else if(all.length>RATES_RECENT){
+      foot.innerHTML = ratesShowAll
+        ? `<span class="rates-count">${all.length} tasas en total</span> <button class="rates-toggle" onclick="ratesShowAll=false;renderRates()">Ver solo recientes</button>`
+        : `<span class="rates-count">Mostrando las ${RATES_RECENT} más recientes de ${all.length}</span> <button class="rates-toggle" onclick="ratesShowAll=true;renderRates()">Ver todas</button>`;
+    } else { foot.innerHTML=`<span class="rates-count">${all.length} tasa${all.length!==1?'s':''}</span>`; }
+  }
 }
 function toggleGroupPay(fenix){
   const g=groups[fenix]; if(!g)return;
@@ -1167,6 +1325,100 @@ function toggleDecline(fenix){
   dbUpsert('traslados_meta',[rowMeta(fenix)]);
   const g2=groups[fenix];
   if(g2) dbUpsert('traslados', g2.rows.map(r=>rowTraslado(r.reserva)).filter(Boolean));
+}
+
+/* ---- Botón único de estado cíclico: Pendiente → Pagado → Declinada → Pendiente ---- */
+function setGroupPaid(fenix, val){
+  const g=groups[fenix]; if(!g) return;
+  g.rows.forEach(r=>{
+    pagos[r.reserva]=pagos[r.reserva]||{};
+    pagos[r.reserva].pagado=val;
+    if(val && !pagos[r.reserva].fecha) pagos[r.reserva].fecha=today();
+  });
+}
+function cycleState(fenix){
+  const g=groups[fenix]; if(!g) return;
+  meta[fenix]=meta[fenix]||{};
+  const st=rowState(g);
+  if(st==='cancelled'){
+    // Cancelada → Pendiente
+    meta[fenix].cancelada=false;
+    meta[fenix].declinada=false;
+    setGroupPaid(fenix,false);
+    persistGroupState(fenix);
+  } else if(st==='declined'){
+    // Declinada → Cancelada (pide motivo obligatorio)
+    openReasonModal(fenix,'cancelada','traslado');
+  } else if(st==='paid'){
+    // Pagado → Declinada (pide motivo obligatorio)
+    openReasonModal(fenix,'declinada','traslado');
+  } else {
+    // Pendiente / Parcial → Pagado
+    meta[fenix].declinada=false;
+    meta[fenix].cancelada=false;
+    setGroupPaid(fenix,true);
+    persistGroupState(fenix);
+  }
+}
+function persistGroupState(fenix){
+  save(); render();
+  const g=groups[fenix];
+  if(g) dbUpsert('traslados', g.rows.map(r=>rowTraslado(r.reserva)).filter(Boolean));
+  dbUpsert('traslados_meta',[rowMeta(fenix)]);
+}
+
+/* ---- Popup de motivo (declinada o cancelada), obligatorio ----
+   scope: 'traslado' (clave = fenix) | 'excursion' (clave = reserva) */
+let reasonModalKey=null, reasonModalKind=null, reasonModalScope='traslado';
+function openReasonModal(key, kind, scope){
+  reasonModalKey=key; reasonModalKind=kind; reasonModalScope=scope||'traslado';
+  const store = scope==='excursion' ? (excPagos[key]||{}) : (meta[key]||{});
+  const esCancel = kind==='cancelada';
+  document.getElementById('declineModalTitle').textContent = esCancel?'Cancelar reserva':'Declinar reserva';
+  document.getElementById('declineModalText').textContent = esCancel
+    ? 'Escribe el motivo de la cancelación. Es obligatorio para confirmar.'
+    : 'Escribe el motivo de la declinación. Es obligatorio para confirmar.';
+  document.getElementById('declineModalInput').placeholder = esCancel?'Motivo de la cancelación…':'Motivo de la declinación…';
+  document.getElementById('declineModalOk').textContent = esCancel?'Cancelar reserva':'Declinar reserva';
+  document.getElementById('declineModalInput').value = esCancel?(store.comentarioCancel||''):(store.comentario||'');
+  document.getElementById('declineModalErr').textContent='';
+  document.getElementById('declineModal').classList.add('show');
+  setTimeout(()=>document.getElementById('declineModalInput').focus(),50);
+}
+function cancelDeclineModal(){
+  reasonModalKey=null; reasonModalKind=null;
+  document.getElementById('declineModal').classList.remove('show');
+}
+function confirmDeclineModal(){
+  const key=reasonModalKey, kind=reasonModalKind, scope=reasonModalScope; if(!key) return;
+  const val=document.getElementById('declineModalInput').value.trim();
+  if(!val){ document.getElementById('declineModalErr').textContent='Debes escribir el motivo para confirmar.'; return; }
+  if(scope==='excursion'){
+    excPagos[key]=excPagos[key]||{};
+    if(kind==='cancelada'){ excPagos[key].cancelada=true; excPagos[key].declinada=false; excPagos[key].comentarioCancel=val; }
+    else { excPagos[key].declinada=true; excPagos[key].cancelada=false; excPagos[key].comentario=val; }
+    excPagos[key].pagado=false;
+    document.getElementById('declineModal').classList.remove('show');
+    reasonModalKey=null; reasonModalKind=null;
+    excSave(); excRender();
+    dbUpsert('excursiones',[rowExc(key)]);
+    return;
+  }
+  meta[key]=meta[key]||{};
+  if(kind==='cancelada'){
+    meta[key].cancelada=true;
+    meta[key].declinada=false;
+    meta[key].comentarioCancel=val;
+  } else {
+    meta[key].declinada=true;
+    meta[key].cancelada=false;
+    meta[key].comentario=val;
+  }
+  setGroupPaid(key,false);
+  openState[key]=true;
+  document.getElementById('declineModal').classList.remove('show');
+  reasonModalKey=null; reasonModalKind=null;
+  persistGroupState(key);
 }
 function saveNote(fenix){
   const el=document.getElementById('notes-'+fenix); if(!el) return;
@@ -1469,15 +1721,21 @@ function excRender(){
         ${excLinks[r.reserva]?`<a class="exc-link-open" href="${lnk}" target="_blank" rel="noopener" title="Abrir link de pago"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></a>`:''}
       </div>`;
     const declined=!!p.declinada;
+    const cancelled=!!p.cancelada;
+    const est = cancelled?'cancelled': declined?'declined': done?'paid':'pending';
     const notasVal=(p.notas||'').replace(/"/g,'&quot;');
     const notesCell=`<div class="exc-noteswrap">
         <input type="text" class="exc-notes-input" id="excnotes-${r.reserva}" placeholder="Nota…" value="${notasVal}" onkeydown="if(event.key==='Enter')excSaveNote('${r.reserva}')">
         <button class="exc-notes-save" onclick="excSaveNote('${r.reserva}')" title="Guardar nota">✓</button>
       </div>`;
-    const trCls = (done?'paid-row':'') + (declined?' declined-row':'');
+    const trCls = (done?'paid-row':'') + (declined?' declined-row':'') + (cancelled?' cancelled-row':'');
+    const motivoTxt = cancelled?(p.comentarioCancel||''):(declined?(p.comentario||''):'');
+    const motivoPill = motivoTxt
+      ? `<span class="state-motivo ${cancelled?'cancel':''}" title="${motivoTxt.replace(/"/g,'&quot;')}">${cancelled?'⊘':'✕'} ${motivoTxt.replace(/</g,'&lt;')}</span>`
+      : '';
     const mainRow=`<tr class="${trCls}" data-res="${r.reserva}">
       <td><input type="checkbox" class="exc-chk" ${excSelected.has(r.reserva)?'checked':''} onclick="excToggleSel('${r.reserva}',this.checked)"></td>
-      <td class="exc-res">${r.reserva}${declined?'<span class="exc-decl-pill">Declinada</span>':''}</td>
+      <td class="exc-res">${r.reserva}</td>
       <td><div class="exc-titular">${r.titular||'—'}</div><div class="exc-act">${r.actividad||''}</div></td>
       <td>${r.fecha||'—'}</td>
       <td class="exc-net">${fmt(r.neta)}</td>
@@ -1485,20 +1743,14 @@ function excRender(){
       <td><input type="date" class="exc-cobro-input" value="${p.fecha||''}" onchange="excSetCobro('${r.reserva}',this.value)">${origin}</td>
       <td>${linkCell}</td>
       <td>${notesCell}</td>
-      <td><div class="exc-btns">
-        <button class="exc-paybtn ${done?'done':''}" onclick="excTogglePay('${r.reserva}')">${done?'✓ Pagado':'Marcar pagado'}</button>
-        <button class="exc-declbtn ${declined?'active':''}" onclick="excToggleDecline('${r.reserva}')">${declined?'✓ Declinada':'Declinada'}</button>
+      <td><div class="state-wrap">
+        <button class="state-btn ${est}" onclick="excCycleState('${r.reserva}')" title="Clic para cambiar el estado">
+          ${est==='paid'?'✓ Pagado': est==='declined'?'✕ Declinada': est==='cancelled'?'⊘ Cancelada':'● Pendiente'}
+        </button>
+        ${motivoPill}
       </div></td>
     </tr>`;
-    const declRow = declined ? `<tr class="exc-declrow" data-res="${r.reserva}"><td></td><td colspan="9">
-        <div class="exc-declbox">
-          <span class="exc-declhead"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg> Comentario de declinación</span>
-          <input type="text" class="exc-declinput" id="excdecl-${r.reserva}" placeholder="Motivo / comentario…" value="${(p.comentario||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')excSaveDeclineComment('${r.reserva}')">
-          <button class="exc-declsave" onclick="excSaveDeclineComment('${r.reserva}')">Guardar</button>
-          ${p.comentario?`<span class="exc-declshown">“${p.comentario.replace(/</g,'&lt;')}”</span>`:''}
-        </div>
-      </td></tr>` : '';
-    return mainRow + declRow;
+    return mainRow;
   }).join('');
 
   list.innerHTML = `<div class="exc-card"><table class="exc-table">
@@ -1538,6 +1790,26 @@ function excTogglePay(res){
   excPagos[res]=excPagos[res]||{};
   excPagos[res].pagado=!excPagos[res].pagado; excSave(); excRender();
   dbUpsert('excursiones',[rowExc(res)]);
+}
+function excCycleState(res){
+  excPagos[res]=excPagos[res]||{};
+  const p=excPagos[res];
+  const st = p.cancelada?'cancelled': p.declinada?'declined': p.pagado?'paid':'pending';
+  if(st==='cancelled'){
+    // Cancelada → Pendiente
+    p.cancelada=false; p.declinada=false; p.pagado=false;
+    excSave(); excRender(); dbUpsert('excursiones',[rowExc(res)]);
+  } else if(st==='declined'){
+    // Declinada → Cancelada (popup)
+    openReasonModal(res,'cancelada','excursion');
+  } else if(st==='paid'){
+    // Pagado → Declinada (popup)
+    openReasonModal(res,'declinada','excursion');
+  } else {
+    // Pendiente → Pagado
+    p.declinada=false; p.cancelada=false; p.pagado=true;
+    excSave(); excRender(); dbUpsert('excursiones',[rowExc(res)]);
+  }
 }
 function excSaveLink(res){
   const el=document.getElementById('exclink-'+res); if(!el) return;
@@ -1607,8 +1879,21 @@ function excAddRate(){
 function excDelRate(d){ delete tasas[d]; save(); excRender(); if(typeof render==='function') render(); dbDelete('tasas','fecha',d); }
 function excRenderRates(){
   const box=document.getElementById('excRatesList'); if(!box) return;
-  const keys=Object.keys(tasas).sort();
-  box.innerHTML = keys.length? keys.map(d=>`<div class="rate-chip"><span class="rc-date">${fmtFecha(d)}</span><span class="rc-val">${tasas[d].toFixed(2)}</span><button class="rc-del" onclick="excDelRate('${d}')">×</button></div>`).join('') : '<div class="rate-empty">Sin tasas registradas todavía.</div>';
+  const foot=document.getElementById('excRatesFoot');
+  const q=(document.getElementById('excRateSearch')||{}).value||'';
+  const all=filterRateKeys(q);
+  if(!Object.keys(tasas).length){ box.innerHTML='<div class="rates-empty">Sin tasas registradas todavía.</div>'; if(foot)foot.innerHTML=''; return; }
+  if(!all.length){ box.innerHTML='<div class="rates-empty">No hay tasas que coincidan con tu búsqueda.</div>'; if(foot)foot.innerHTML=''; return; }
+  const shown = (q.trim()||excRatesShowAll) ? all : all.slice(0,RATES_RECENT);
+  box.innerHTML = shown.map(iso=>rateChipHtml(iso,'excDelRate')).join('');
+  if(foot){
+    if(q.trim()){ foot.innerHTML=`<span class="rates-count">${all.length} resultado${all.length!==1?'s':''}</span>`; }
+    else if(all.length>RATES_RECENT){
+      foot.innerHTML = excRatesShowAll
+        ? `<span class="rates-count">${all.length} tasas en total</span> <button class="rates-toggle" onclick="excRatesShowAll=false;excRenderRates()">Ver solo recientes</button>`
+        : `<span class="rates-count">Mostrando las ${RATES_RECENT} más recientes de ${all.length}</span> <button class="rates-toggle" onclick="excRatesShowAll=true;excRenderRates()">Ver todas</button>`;
+    } else { foot.innerHTML=`<span class="rates-count">${all.length} tasa${all.length!==1?'s':''}</span>`; }
+  }
 }
 
 function excSetFilter(f){ excFilter=f; excPage=1; excRender(); }
@@ -1644,6 +1929,7 @@ function excExportXlsx(){
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active', p.id==='page-'+t));
+  if(t==='reporte') repRender();
 }
 
 document.getElementById('excQ').addEventListener('input',e=>{ excQuery=e.target.value; excPage=1; excRender(); });
@@ -1655,6 +1941,177 @@ document.getElementById('excFilters').addEventListener('click',e=>{
 [document.getElementById('excDFrom'),document.getElementById('excDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') excSetRange(); }));
 
 excRender();
+
+/* ===================== REPORTE AZUL ===================== */
+const COMISION = 0.035;
+let repDFrom='', repDTo='';
+let repPage=1; const REP_PER_PAGE=50;
+
+function repInRange(d){
+  if(!d) return false;
+  if(repDFrom && d<repDFrom) return false;
+  if(repDTo && d>repDTo) return false;
+  return true;
+}
+
+// Junta traslados + excursiones PAGADOS, agrupados por fecha de cobro (ISO)
+// Fecha de pago Azul = fecha de cobro + 1 día; si cae sáb/dom, se mueve al lunes.
+function fechaPagoAzul(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-').map(Number);
+  const dt=new Date(y, m-1, d, 12, 0, 0); // mediodía para evitar saltos por zona horaria
+  dt.setDate(dt.getDate()+1);             // +24 horas (día siguiente)
+  const dow=dt.getDay();                  // 0=domingo, 6=sábado
+  if(dow===6) dt.setDate(dt.getDate()+2); // sábado → lunes
+  else if(dow===0) dt.setDate(dt.getDate()+1); // domingo → lunes
+  const yy=dt.getFullYear(), mm=String(dt.getMonth()+1).padStart(2,'0'), dd=String(dt.getDate()).padStart(2,'0');
+  return `${yy}-${mm}-${dd}`;
+}
+function repBuild(){
+  const dias={}; // iso -> {count, usd, usdTras, usdExc}
+  // Traslados pagados
+  DATA.forEach(r=>{
+    const p=pagos[r.reserva]||{};
+    if(!p.pagado || !p.fecha) return;
+    if((repDFrom||repDTo) && !repInRange(p.fecha)) return;
+    dias[p.fecha]=dias[p.fecha]||{count:0, usd:0, usdTras:0, usdExc:0};
+    dias[p.fecha].count++; dias[p.fecha].usd+=r.neta; dias[p.fecha].usdTras+=r.neta;
+  });
+  // Excursiones pagadas
+  EXC_DATA.forEach(r=>{
+    const p=excPagos[r.reserva]||{};
+    if(!p.pagado || !p.fecha) return;
+    if((repDFrom||repDTo) && !repInRange(p.fecha)) return;
+    dias[p.fecha]=dias[p.fecha]||{count:0, usd:0, usdTras:0, usdExc:0};
+    dias[p.fecha].count++; dias[p.fecha].usd+=r.neta; dias[p.fecha].usdExc+=r.neta;
+  });
+  // a lista ordenada por fecha
+  return Object.keys(dias).sort().map(iso=>{
+    const d=dias[iso];
+    const comision=d.usd*COMISION;
+    const depositar=d.usd-comision;
+    const tasa=tasaDe(iso);
+    const dop = tasa!=null ? depositar*tasa : null;
+    const pagoAzul = fechaPagoAzul(iso);
+    return { iso, count:d.count, usd:d.usd, usdTras:d.usdTras, usdExc:d.usdExc, comision, depositar, tasa, dop, pagoAzul };
+  });
+}
+
+function repRender(){
+  const cont=document.getElementById('repList');
+  const rows=repBuild();
+  // KPIs
+  let tUsd=0,tCom=0,tDep=0,tDop=0,tUsdDop=0,tTras=0,tExc=0,nRes=0,faltaTasa=false;
+  rows.forEach(x=>{ tUsd+=x.usd; tCom+=x.comision; tDep+=x.depositar; tTras+=x.usdTras; tExc+=x.usdExc; nRes+=x.count; if(x.dop!=null){ tDop+=x.dop; tUsdDop+=x.usd*x.tasa; } else faltaTasa=true; });
+  const hayFiltro = repDFrom||repDTo;
+  const kpis=[
+    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',l:'Total cobrado',v:fmt(tUsd),s:nRes+' reservas pagadas'+(hayFiltro?' (filtrado)':'')},
+    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',l:'Comisión Azul',v:fmt(tCom),s:'3.5% del cobrado'},
+    {c:'blue',i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',l:'Total a depositar (USD)',v:fmt(tDep),s:rows.length+' día'+(rows.length!==1?'s':'')+' de cobro'},
+    {c:'blue',i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18M8 17V9M13 17V5M18 17v-6"/></svg>',l:'Total a depositar (DOP)',v:'RD$'+Math.round(tDop).toLocaleString('en-US'),s:faltaTasa?'⚠ faltan tasas en algunos días':'convertido por tasa del día'},
+  ];
+  document.getElementById('repKpis').innerHTML = kpis.map(x=>`
+    <div class="kpi">
+      <div class="ic ${x.c}">${x.i}</div>
+      <div class="lbl">${x.l}</div>
+      <div class="val">${x.v}</div>
+      <div class="sub">${x.s}</div>
+    </div>`).join('');
+
+  if(!rows.length){
+    cont.innerHTML='<div class="rep-empty">No hay reservas pagadas todavía'+(hayFiltro?' en el rango seleccionado':'')+'.<br>Marca reservas como pagadas en Traslados o Excursiones para verlas aquí.</div>';
+    return;
+  }
+
+  // Paginación (50 por página)
+  const totalPages=Math.max(1,Math.ceil(rows.length/REP_PER_PAGE));
+  if(repPage>totalPages) repPage=totalPages;
+  if(repPage<1) repPage=1;
+  const slice=rows.slice((repPage-1)*REP_PER_PAGE, repPage*REP_PER_PAGE);
+
+  const body=slice.map(x=>`
+    <tr>
+      <td><span class="rep-day">${fmtFecha(x.iso)}</span> <span class="rep-sub">· ${x.count} reserva${x.count!==1?'s':''}</span></td>
+      <td class="rep-tras">${x.usdTras>0?fmt(x.usdTras):'<span class="rep-zero">—</span>'}</td>
+      <td class="rep-exc">${x.usdExc>0?fmt(x.usdExc):'<span class="rep-zero">—</span>'}</td>
+      <td class="rep-usd">${fmt(x.usd)}</td>
+      <td>${x.tasa!=null?x.tasa.toFixed(2):'<span class="rep-notasa">sin tasa</span>'}</td>
+      <td class="rep-valdop">${x.tasa!=null?fmtDOP(x.usd*x.tasa):'<span class="rep-notasa">sin tasa</span>'}</td>
+      <td class="rep-com">${fmt(x.comision)}</td>
+      <td class="rep-pago">${x.pagoAzul?fmtFecha(x.pagoAzul):'—'}</td>
+      <td class="rep-dop">${x.dop!=null?fmtDOP(x.dop):'<span class="rep-notasa">—</span>'}</td>
+    </tr>`).join('');
+
+  cont.innerHTML=`<div class="rep-card"><table class="rep-table">
+    <thead><tr>
+      <th>Día de cobro</th><th>Traslados USD</th><th>Excursiones USD</th><th>Total USD</th><th>Tasa</th><th>Total DOP</th><th>Comisión Azul 3.5%</th><th>Fecha pago Azul</th><th>A depositar DOP</th>
+    </tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr>
+      <td>TOTALES${rows.length>REP_PER_PAGE?' (todos los días)':''}</td>
+      <td>${fmt(tTras)}</td>
+      <td>${fmt(tExc)}</td>
+      <td>${fmt(tUsd)}</td>
+      <td>—</td>
+      <td class="rep-valdop">RD$${Math.round(tUsdDop).toLocaleString('en-US')}</td>
+      <td>${fmt(tCom)}</td>
+      <td>—</td>
+      <td>RD$${Math.round(tDop).toLocaleString('en-US')}</td>
+    </tr></tfoot>
+  </table></div>`;
+
+  // controles de paginación
+  if(totalPages>1){
+    let pg='';
+    pg+=`<button class="pg-btn" ${repPage===1?'disabled':''} onclick="repGo(${repPage-1})">‹</button>`;
+    for(let i=1;i<=totalPages;i++){
+      if(i===1||i===totalPages||Math.abs(i-repPage)<=1){ pg+=`<button class="pg-btn ${i===repPage?'active':''}" onclick="repGo(${i})">${i}</button>`; }
+      else if(Math.abs(i-repPage)===2){ pg+='<span class="pg-dots">…</span>'; }
+    }
+    pg+=`<button class="pg-btn" ${repPage===totalPages?'disabled':''} onclick="repGo(${repPage+1})">›</button>`;
+    cont.innerHTML+=`<div class="pager" style="margin-top:14px"><div class="pg-left">${pg}</div><div class="pg-right"><span>${rows.length} días · 50 por página</span></div></div>`;
+  }
+}
+function repGo(p){ repPage=p; repRender(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function repSetRange(){ repDFrom=document.getElementById('repDFrom').value; repDTo=document.getElementById('repDTo').value; repPage=1; repRender(); }
+function repClearRange(){ repDFrom=''; repDTo=''; document.getElementById('repDFrom').value=''; document.getElementById('repDTo').value=''; repPage=1; repRender(); }
+
+function repExportXlsx(){
+  const rows=repBuild();
+  const out=rows.map(x=>({
+    'Día de cobro':fmtFecha(x.iso),
+    'Reservas':x.count,
+    'Traslados USD':Math.round(x.usdTras*100)/100,
+    'Excursiones USD':Math.round(x.usdExc*100)/100,
+    'Total USD':Math.round(x.usd*100)/100,
+    'Tasa USD/DOP':x.tasa!=null?x.tasa:'',
+    'Total DOP':x.tasa!=null?Math.round(x.usd*x.tasa*100)/100:'',
+    'Comisión Azul 3.5% (USD)':Math.round(x.comision*100)/100,
+    'Fecha pago Azul':x.pagoAzul?fmtFecha(x.pagoAzul):'',
+    'A depositar DOP':x.dop!=null?Math.round(x.dop*100)/100:''
+  }));
+  // fila de totales
+  let tUsd=0,tCom=0,tDop=0,tUsdDop=0,tTras=0,tExc=0,nRes=0;
+  rows.forEach(x=>{ tUsd+=x.usd; tCom+=x.comision; tTras+=x.usdTras; tExc+=x.usdExc; nRes+=x.count; if(x.dop!=null){ tDop+=x.dop; tUsdDop+=x.usd*x.tasa; } });
+  out.push({
+    'Día de cobro':'TOTALES','Reservas':nRes,
+    'Traslados USD':Math.round(tTras*100)/100,
+    'Excursiones USD':Math.round(tExc*100)/100,
+    'Total USD':Math.round(tUsd*100)/100,
+    'Tasa USD/DOP':'',
+    'Total DOP':Math.round(tUsdDop*100)/100,
+    'Comisión Azul 3.5% (USD)':Math.round(tCom*100)/100,
+    'Fecha pago Azul':'', 'A depositar DOP':Math.round(tDop*100)/100
+  });
+  const ws=XLSX.utils.json_to_sheet(out);
+  ws['!cols']=[{wch:14},{wch:10},{wch:14},{wch:15},{wch:14},{wch:13},{wch:14},{wch:18},{wch:15},{wch:16}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Reporte Azul');
+  XLSX.writeFile(wb,`Reporte_Azul_DPG_${today()}.xlsx`);
+}
+
+[document.getElementById('repDFrom'),document.getElementById('repDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') repSetRange(); }));
 
 </script>
 </body>
