@@ -188,6 +188,13 @@
   .fenix-lbl{font-weight:700;color:var(--teal-dark);user-select:none;-webkit-user-select:none}
   .fenix-num{font-weight:700;color:var(--teal-dark);user-select:all;-webkit-user-select:all}
   .fenix-rest{user-select:none;-webkit-user-select:none}
+  .copyable{cursor:pointer;border-radius:6px;transition:background .12s,color .12s;padding:0 3px;margin:0 -3px}
+  .fenix-name-main.copyable:hover{background:#EEF1F4}
+  .fenix-num.copyable:hover{background:var(--teal-soft)}
+  .dop-amt.copyable:hover{background:#D6E3FB}
+  .copyable.copied{background:var(--green-soft)!important;color:var(--green)!important}
+  .copied-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;font-weight:700;font-size:14px;padding:11px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:9999}
+  .copied-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .fenix-meta{font-size:12.5px;color:var(--slate);margin-top:3px}
   .group-head .right{margin-left:auto;display:flex;align-items:center;gap:16px}
   .group-cobro{text-align:center}
@@ -1026,9 +1033,45 @@ function fmt(n){ return '$' + Number(n).toLocaleString('en-US',{minimumFractionD
 function fmtDOP(n){ return 'RD$' + Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtDOPint(n){ return 'RD$' + Math.round(Number(n)); }
 // RD$ y monto en spans separados: doble clic selecciona solo el número
-function dopParts(n){ return `<span class="dop-cur">RD$</span><span class="dop-amt">${Math.round(Number(n))}</span>`; }
+function dopParts(n){ const v=Math.round(Number(n)); return `<span class="dop-cur">RD$</span><span class="dop-amt copyable" title="Clic para copiar el monto" data-copy="${v}" onclick="event.stopPropagation();copyFromEl(this)">${v}</span>`; }
 function tasaDe(iso){ return (iso && tasas[iso]!=null) ? tasas[iso] : null; }
 function today(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function copyFromEl(el){
+  const txt = el.getAttribute('data-copy') || el.textContent.trim();
+  copyText(txt, el);
+}
+function showCopiedToast(){
+  let t=document.getElementById('copiedToast');
+  if(!t){
+    t=document.createElement('div'); t.id='copiedToast'; t.className='copied-toast';
+    t.textContent='✓ Copiado';
+    document.body.appendChild(t);
+  }
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h=setTimeout(()=>t.classList.remove('show'),1300);
+}
+function copyText(txt, el){
+  const done=()=>{
+    showCopiedToast();
+    if(el){
+      el.classList.add('copied');
+      setTimeout(()=>el.classList.remove('copied'), 1200);
+    }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done));
+  } else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt, cb){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    if(cb) cb();
+  }catch(e){}
+}
 
 /* ---------- helpers de fecha ---------- */
 // "DD/MM/YYYY" -> Date (mediodía para evitar saltos por zona horaria)
@@ -1247,10 +1290,10 @@ function render(){
         <span class="ord-num">${ordNum}</span>
         <input type="checkbox" class="sel-chk" ${selected.has(g.fenix)?'checked':''} onclick="event.stopPropagation();toggleSelect('${g.fenix}')" title="Seleccionar">
         <svg class="caret" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer"><path d="m9 18 6-6-6-6"/></svg>
-        <div class="head-id" onclick="toggleGroup('${g.fenix}')" style="cursor:pointer;flex:1">
+        <div class="head-id" style="flex:1">
           <div>
-            <div class="fenix-name-main">${g.rows[0].titular||'—'}</div>
-            <div class="fenix-meta"><span class="fenix-lbl">Fénix</span> <span class="fenix-num">${g.fenix}</span><span class="fenix-rest"> · ${g.rows.length} reserva${g.rows.length>1?'s':''}</span></div>
+            <div class="fenix-name-main copyable" title="Clic para copiar el nombre" data-copy="${(g.rows[0].titular||'').replace(/"/g,'&quot;')}" onclick="event.stopPropagation();copyFromEl(this)">${g.rows[0].titular||'—'}</div>
+            <div class="fenix-meta"><span class="fenix-lbl">Fénix</span> <span class="fenix-num copyable" title="Clic para copiar el Fénix" data-copy="${g.fenix}" onclick="event.stopPropagation();copyFromEl(this)">${g.fenix}</span><span class="fenix-rest"> · ${g.rows.length} reserva${g.rows.length>1?'s':''}</span></div>
           </div>
         </div>
         <div class="right">
