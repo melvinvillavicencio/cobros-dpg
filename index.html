@@ -218,6 +218,8 @@
   .state-wrap{display:flex;flex-direction:column;align-items:stretch;gap:5px;max-width:150px}
   .state-motivo{font-size:11.5px;color:#B42318;background:#FBE0E0;border-radius:8px;padding:3px 9px;font-weight:600;font-style:italic;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
   .state-motivo.cancel{color:#374151;background:#E5E7EB}
+  .del-btn{appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;transition:background .12s}
+  .del-btn:hover{background:#FBE0E0}
   /* Botón de estado compacto dentro de la tabla de excursiones */
   .exc-table .state-btn{font-size:12px;padding:8px 10px;min-width:0;width:100%;border-radius:10px}
   .exc-table .state-wrap{max-width:120px}
@@ -431,6 +433,7 @@
       <button class="chip-btn active" data-f="all">Todas</button>
       <button class="chip-btn" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="linkok">Links OK</button>
     </div>
     <div class="filterrow">
     <div class="datefilter">
@@ -571,7 +574,7 @@
   .exc-declsave:hover{filter:brightness(1.08)}
   .exc-declshown{font-size:13px;color:#7A1610;font-style:italic;background:#fff;border-left:3px solid #B42318;padding:6px 11px;border-radius:0 8px 8px 0;width:100%}
   .exc-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-  .exc-table{min-width:1040px}
+  .exc-table{min-width:1120px}
   /* Login */
   .login-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F7F6,#F4F1FF);padding:20px}
   .login-card{background:#fff;border-radius:22px;box-shadow:0 20px 60px rgba(31,42,51,.18);padding:36px 32px;width:100%;max-width:380px;text-align:center}
@@ -649,6 +652,7 @@
       <button class="chip-btn active" data-f="all">Todas</button>
       <button class="chip-btn" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="linkok">Links OK</button>
     </div>
     <div class="filterrow">
     <div class="datefilter">
@@ -775,6 +779,22 @@
       </div>
     </div>
   </div>
+
+  <div id="deleteModal" class="im-overlay">
+    <div class="im-box dm-box">
+      <div class="dm-head" style="background:#B42318">
+        <span class="dm-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></span>
+        Eliminar reserva
+      </div>
+      <div class="dm-body">
+        <p class="dm-text">Vas a eliminar permanentemente la reserva <b id="deleteModalRes"></b>. Esta acción <b>no se puede deshacer</b> y la quita de la base de datos para todos.</p>
+        <div class="im-actions" style="padding:0">
+          <button class="im-cancel" onclick="cancelDelete()">Cancelar</button>
+          <button class="dm-confirm" onclick="confirmDelete()">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 </div><!-- /appShell -->
 
@@ -846,6 +866,7 @@ async function loadAllFromDB(){
     tasas={};
     tas.forEach(t=>{ tasas[t.fecha]=Number(t.valor); });
 
+    syncFilterUI();
     rebuild(); render();
     excRebuild(); excRender();
     if(typeof repRender==='function') repRender();
@@ -878,6 +899,45 @@ async function dbDelete(table, col, val){
   setSync('saving');
   const { error } = await sb.from(table).delete().eq(col, val);
   if(error){ console.error(error); setSync('error'); } else setSync('ok');
+}
+
+/* ---- Eliminar reserva (con confirmación) ---- */
+let deleteTarget=null; // {scope, reserva}
+function askDelete(scope, reserva){
+  deleteTarget={scope, reserva};
+  document.getElementById('deleteModalRes').textContent=reserva;
+  document.getElementById('deleteModal').classList.add('show');
+}
+function cancelDelete(){
+  deleteTarget=null;
+  document.getElementById('deleteModal').classList.remove('show');
+}
+async function confirmDelete(){
+  if(!deleteTarget) return;
+  const {scope, reserva}=deleteTarget;
+  deleteTarget=null;
+  document.getElementById('deleteModal').classList.remove('show');
+  if(scope==='excursion'){
+    // quitar de memoria
+    EXC_DATA = EXC_DATA.filter(r=>r.reserva!==reserva);
+    delete excPagos[reserva]; delete excLinks[reserva];
+    excSave(); excRebuild(); excRender();
+    await dbDelete('excursiones','reserva',reserva);
+  } else {
+    // traslado: quitar la reserva; si su grupo queda vacío, también se va de groups al hacer rebuild
+    const r = DATA.find(x=>x.reserva===reserva);
+    const fenix = r?r.fenix:null;
+    DATA = DATA.filter(x=>x.reserva!==reserva);
+    delete pagos[reserva];
+    rebuild(); render();
+    await dbDelete('traslados','reserva',reserva);
+    // si el grupo Fénix ya no tiene reservas, borrar su meta también
+    if(fenix && !DATA.some(x=>x.fenix===fenix)){
+      delete meta[fenix]; delete links[fenix];
+      await dbDelete('traslados_meta','fenix',fenix);
+    }
+  }
+  if(typeof repRender==='function') repRender();
 }
 function rowTraslado(reserva){
   const r=DATA.find(x=>x.reserva===reserva); if(!r) return null;
@@ -993,12 +1053,23 @@ function rebuild(recalcAll){
 }
 rebuild();
 
-let filter = 'all';
+function isoDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+function syncFilterUI(){
+  // Traslados
+  const df=document.getElementById('dFrom'), dt=document.getElementById('dTo');
+  if(df) df.value=dFrom; if(dt) dt.value=dTo;
+  document.querySelectorAll('#filters .chip-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===filter));
+  // Excursiones
+  const ef=document.getElementById('excDFrom'), et=document.getElementById('excDTo');
+  if(ef) ef.value=excDFrom; if(et) et.value=excDTo;
+  document.querySelectorAll('#excFilters .chip-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===excFilter));
+}
+let filter = 'pending';
 let query = '';
 let perPage = 25;
 let page = 1;
-let dFrom = '';
-let dTo = '';
+let dFrom = isoDaysAgo(10);
+let dTo = today();
 
 function rowState(g){
   if(meta[g.fenix] && meta[g.fenix].cancelada) return 'cancelled';
@@ -1011,7 +1082,13 @@ function rowState(g){
 
 function renderKpis(visible){
   visible = visible || GROUPS;
-  const rows = visible.flatMap(g=>g.rows);
+  // Si hay filtro de fecha, contar SOLO las reservas cuyo cobro cae en el rango (estricto)
+  const filtraFecha = !!(dFrom || dTo);
+  const rows = visible.flatMap(g=>g.rows).filter(r=>{
+    if(!filtraFecha) return true;
+    const p=pagos[r.reserva];
+    return p && inRange(p.fecha);
+  });
   const totalGlobal = DATA.length;
   const hayFiltro = (filter!=='all') || query.trim() || dFrom || dTo;
   let total=0, cobrado=0, pendiente=0, nResPaid=0;
@@ -1029,7 +1106,11 @@ function renderKpis(visible){
   const depositar = cobrado - comision;
   const depDopStr = nResPaid===0 ? '' : (`<span class="dep-dop">${dopParts(depositarDop)}</span>` + (faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa registrada; no suman al DOP">⚠</span>':''));
   let nUnicas=0, nDobles=0;
-  visible.forEach(g=>{ if(g.rows.length>1) nDobles+=g.rows.length; else nUnicas+=g.rows.length; });
+  if(filtraFecha){
+    rows.forEach(r=>{ const g=groups[r.fenix]; if(g && g.rows.length>1) nDobles++; else nUnicas++; });
+  } else {
+    visible.forEach(g=>{ if(g.rows.length>1) nDobles+=g.rows.length; else nUnicas+=g.rows.length; });
+  }
   const ventaSub = `<span class="vsub-main">${rows.length} reservas${hayFiltro?` de ${totalGlobal} (filtrado)`:''}</span>`
     + `<span class="vsub-li">${nUnicas} únicas</span>`
     + `<span class="vsub-li">${nDobles} en grupo</span>`;
@@ -1060,6 +1141,11 @@ function matches(g){
   const st = rowState(g);
   if(filter==='paid' && st!=='paid') return false;
   if(filter==='pending' && st==='paid') return false;
+  if(filter==='linkok'){
+    // pendiente (no pagada) Y con link de pago guardado
+    if(st==='paid') return false;
+    if(!(links[g.fenix] && links[g.fenix].trim())) return false;
+  }
   if(dFrom || dTo){
     if(!g.rows.some(r=>{const p=pagos[r.reserva]; return p && inRange(p.fecha);})) return false;
   }
@@ -1116,6 +1202,7 @@ function render(){
         <td data-l="Tarifa neta" class="neta">${fmt(r.neta)}</td>
         <td data-l="Valor DOP" class="dop">${dopCell}</td>
         <td data-l="Fecha de cobro" class="fecha-cobro"><input type="date" value="${p.fecha||''}" onchange="setFecha('${r.reserva}',this.value)">${p.fecha?`<span class="tag-cobro ${p.manual?'man':'auto'}">${p.manual?'manual':'auto'}</span>`:''}</td>
+        <td data-l=""><button class="del-btn" title="Eliminar esta reserva" onclick="askDelete('traslado','${r.reserva}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></td>
       </tr>`;
     }).join('');
     return `<div class="group ${open?'open':''}" data-fenix="${g.fenix}">
@@ -1143,7 +1230,7 @@ function render(){
       <div class="group-body">
         <table><thead><tr>
           <th>ID Reserva</th><th>Fecha traslado</th><th>Modalidad</th>
-          <th>Tarifa neta</th><th>Valor DOP</th><th>Fecha de cobro</th>
+          <th>Tarifa neta</th><th>Valor DOP</th><th>Fecha de cobro</th><th></th>
         </tr></thead><tbody>${rowsHtml}</tbody></table>
         <div class="paylink paylink-bottom">
           <span class="paylink-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg> Link de pago</span>
@@ -1635,7 +1722,7 @@ let excLinks = {};
 try { excLinks = JSON.parse(window.__dpg_exc_links || '{}'); } catch(e){ excLinks = {}; }
 function excSave(){ window.__dpg_exc = JSON.stringify(excPagos); window.__dpg_exc_links = JSON.stringify(excLinks); }
 
-let excFilter='all', excQuery='', excPerPage=25, excPage=1, excDFrom='', excDTo='';
+let excFilter='pending', excQuery='', excPerPage=25, excPage=1, excDFrom=isoDaysAgo(10), excDTo=today();
 const excSelected = new Set();
 
 // Fecha de cobro excursión = fecha de actividad + 2 días
@@ -1659,6 +1746,10 @@ function excMatches(r){
   const p=excPagos[r.reserva]||{};
   if(excFilter==='paid' && !p.pagado) return false;
   if(excFilter==='pending' && p.pagado) return false;
+  if(excFilter==='linkok'){
+    if(p.pagado) return false;
+    if(!(excLinks[r.reserva] && excLinks[r.reserva].trim())) return false;
+  }
   if(excDFrom || excDTo){ if(!excInRange(p.fecha)) return false; }
   if(!excQuery) return true;
   const q=excQuery.toLowerCase();
@@ -1711,9 +1802,9 @@ function excRender(){
     const done=!!p.pagado;
     const tasaR=tasaDe(p.fecha);
     const dopCell = tasaR!=null
-      ? `${fmtDOP(r.neta*tasaR)}<span class="dop-rate" style="opacity:.7"> @${tasaR.toFixed(2)}</span>`
+      ? `${dopParts(r.neta*tasaR)}`
       : `<span class="dop-none" title="Falta la tasa para ${p.fecha?fmtFecha(p.fecha):'esta fecha'}">sin tasa</span>`;
-    const origin = p.fecha ? `<span class="exc-origin ${p.manual?'manual':'auto'}">${p.manual?'manual':'auto'}</span>` : '';
+    const origin = '';
     const lnk=(excLinks[r.reserva]||'').replace(/"/g,'&quot;');
     const linkCell = `<div class="exc-linkwrap">
         <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="https://…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')">
@@ -1749,6 +1840,7 @@ function excRender(){
         </button>
         ${motivoPill}
       </div></td>
+      <td><button class="del-btn" title="Eliminar esta reserva" onclick="askDelete('excursion','${r.reserva}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></td>
     </tr>`;
     return mainRow;
   }).join('');
@@ -1756,7 +1848,7 @@ function excRender(){
   list.innerHTML = `<div class="exc-card"><table class="exc-table">
     <thead><tr>
       <th style="width:34px"></th><th>ID Reserva</th><th>Titular / Actividad</th>
-      <th>Fecha actividad</th><th>Valor USD</th><th>Valor DOP</th><th>Fecha de cobro</th><th>Link de pago</th><th>Notas</th><th></th>
+      <th>Fecha actividad</th><th>Valor USD</th><th>Valor DOP</th><th>Fecha de cobro</th><th>Link de pago</th><th>Notas</th><th></th><th></th>
     </tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
 
   // paginación
