@@ -847,7 +847,7 @@ async function doLogout(){
 }
 
 /* ---- Auto-cierre de sesión por inactividad (10 minutos) ---- */
-const IDLE_MS = 10*60*1000; // 10 minutos
+const IDLE_MS = 60*60*1000; // 1 hora
 let idleTimer = null;
 async function idleLogout(){
   try{ await sb.auth.signOut(); }catch(e){}
