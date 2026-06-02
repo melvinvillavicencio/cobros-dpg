@@ -1764,36 +1764,43 @@ function exportXlsx(){
   const filtraFecha = !!(dFrom || dTo);
   const visibles = GROUPS.filter(matches);
   visibles.forEach(g=>{
-    const mg=meta[g.fenix]||{};
-    const declinada=!!mg.declinada;
-    const cancelada=!!mg.cancelada;
-    g.rows.forEach(r=>{
+    // reservas del grupo que aplican (si hay filtro de fecha, solo las del rango)
+    const rows = g.rows.filter(r=>{
+      if(!filtraFecha) return true;
       const p=pagos[r.reserva]||{};
-      // si hay filtro de fecha, exportar solo las reservas dentro del rango
-      if(filtraFecha && !(p.fecha && inRange(p.fecha))) return;
-      const tasaR=tasaDe(p.fecha);
-      const estado = cancelada?'Cancelada':(declinada?'Declinada':(p.pagado?'Cobrado':'Pendiente'));
-      out.push({
-        'ID Fenix':r.fenix,
-        'ID Reserva':r.reserva,
-        'Titular':r.titular,
-        'Fecha traslado':r.fecha,
-        'Modalidad':r.modalidad,
-        'Tarifa Neta (USD)':r.neta,
-        'Tasa USD/DOP':tasaR!=null?tasaR:'',
-        'Valor DOP':tasaR!=null?Math.round(r.neta*tasaR*100)/100:'',
-        'Fecha de cobro':p.fecha?fmtFecha(p.fecha):'',
-        'Estado':estado,
-        'Link de pago':links[g.fenix]||'',
-        'Notas':mg.notas||'',
-        'Comentario declinación':declinada?(mg.comentario||''):'',
-        'Comentario cancelación':cancelada?(mg.comentarioCancel||''):''
-      });
+      return p.fecha && inRange(p.fecha);
+    });
+    if(!rows.length) return;
+    // fecha de viaje más antigua entre las reservas del grupo
+    const toComparable=(f)=>{
+      if(!f) return '';
+      const s=String(f).trim();
+      // dd/mm/yyyy -> yyyymmdd
+      let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0');
+      // yyyy-mm-dd -> yyyymmdd
+      m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if(m) return m[1]+m[2]+m[3];
+      return s;
+    };
+    let fechaViaje='';
+    let mejor='';
+    rows.forEach(r=>{
+      if(!r.fecha) return;
+      const c=toComparable(r.fecha);
+      if(!mejor || c<mejor){ mejor=c; fechaViaje=r.fecha; }
+    });
+    // monto total (suma de tarifas)
+    const totalUsd = rows.reduce((a,r)=>a+r.neta,0);
+    out.push({
+      'ID Fenix': g.fenix,
+      'Fecha de viaje': fechaViaje,
+      'Monto total (USD)': Math.round(totalUsd*100)/100
     });
   });
   if(!out.length){ alert('No hay reservas en el filtro actual para exportar.'); return; }
   const ws=XLSX.utils.json_to_sheet(out);
-  ws['!cols']=[{wch:14},{wch:12},{wch:30},{wch:13},{wch:10},{wch:15},{wch:12},{wch:14},{wch:13},{wch:11},{wch:40},{wch:30},{wch:30},{wch:30}];
+  ws['!cols']=[{wch:16},{wch:14},{wch:16}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Cobros');
   XLSX.writeFile(wb,`Cobros_Traslados_DPG_${today()}.xlsx`);
