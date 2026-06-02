@@ -197,6 +197,7 @@
   .copyable.copied{background:var(--green-soft)!important;color:var(--green)!important}
   .copied-toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;font-weight:700;font-size:14px;padding:11px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:9999}
   .copied-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .copied-toast.toast-error{background:#B42318}
   .fenix-meta{font-size:12.5px;color:var(--slate);margin-top:3px}
   .group-head .right{margin-left:auto;display:flex;align-items:center;gap:16px}
   .group-cobro{text-align:center}
@@ -927,15 +928,17 @@ async function fetchAll(table){
 
 /* ---- Guardado: upsert por registro ---- */
 async function dbUpsert(table, rows){
-  if(!rows||!rows.length) return;
+  if(!rows||!rows.length) return true;
   setSync('saving');
   const { error } = await sb.from(table).upsert(rows);
-  if(error){ console.error(error); setSync('error'); } else setSync('ok');
+  if(error){ console.error(error); setSync('error'); return false; }
+  setSync('ok'); return true;
 }
 async function dbDelete(table, col, val){
   setSync('saving');
   const { error } = await sb.from(table).delete().eq(col, val);
-  if(error){ console.error(error); setSync('error'); } else setSync('ok');
+  if(error){ console.error(error); setSync('error'); return false; }
+  setSync('ok'); return true;
 }
 
 /* ---- Eliminar reserva (con confirmación) ---- */
@@ -1036,6 +1039,7 @@ function fmtDOP(n){ return 'RD$' + Number(n).toLocaleString('en-US',{minimumFrac
 function fmtDOPint(n){ return 'RD$' + Math.round(Number(n)); }
 // RD$ y monto en spans separados: doble clic selecciona solo el número
 function dopParts(n){ const v=Math.round(Number(n)); return `<span class="dop-cur">RD$</span><span class="dop-amt copyable" title="Clic para copiar el monto" data-copy="${v}" onclick="event.stopPropagation();copyFromEl(this)">${v}</span>`; }
+function dopPartsKpi(n){ const v=Math.round(Number(n)); return `<span class="dop-cur">RD$</span><span class="dop-amt">${v.toLocaleString('en-US')}</span>`; }
 function tasaDe(iso){ return (iso && tasas[iso]!=null) ? tasas[iso] : null; }
 function localISO(d){
   // Devuelve YYYY-MM-DD usando la fecha LOCAL del navegador (no UTC)
@@ -1049,16 +1053,18 @@ function copyFromEl(el){
   const txt = el.getAttribute('data-copy') || el.textContent.trim();
   copyText(txt, el);
 }
-function showCopiedToast(){
+function showCopiedToast(){ showCopiedToastMsg('✓ Copiado'); }
+function showCopiedToastMsg(msg, isError){
   let t=document.getElementById('copiedToast');
   if(!t){
     t=document.createElement('div'); t.id='copiedToast'; t.className='copied-toast';
-    t.textContent='✓ Copiado';
     document.body.appendChild(t);
   }
+  t.textContent=msg;
+  t.classList.toggle('toast-error', !!isError);
   t.classList.add('show');
   clearTimeout(t._h);
-  t._h=setTimeout(()=>t.classList.remove('show'),1300);
+  t._h=setTimeout(()=>t.classList.remove('show'), isError?3500:1300);
 }
 function copyText(txt, el){
   const done=()=>{
@@ -1196,7 +1202,7 @@ function renderKpis(visible){
   const comision = cobrado * 0.035;
   const depositar = cobrado - comision;
   const comisionDop = cobradoDop * 0.035;
-  const depDopStr = nResPaid===0 ? '' : (`<span class="dep-dop">${dopParts(depositarDop)}</span>` + (faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa registrada; no suman al DOP">⚠</span>':''));
+  const depDopStr = nResPaid===0 ? '' : (`<span class="dep-dop">${dopPartsKpi(depositarDop)}</span>` + (faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa registrada; no suman al DOP">⚠</span>':''));
   let nUnicas=0, nDobles=0;
   if(filtraFecha){
     rows.forEach(r=>{ const g=groups[r.fenix]; if(g && g.rows.length>1) nDobles++; else nUnicas++; });
@@ -1217,7 +1223,7 @@ function renderKpis(visible){
       <div class="ic ${x.c}">${x.i}</div>
       <div class="lbl">${x.l}</div>
       <div class="val">${x.v}</div>
-      ${x.dop2!=null?`<div class="kpi-dop2">${dopParts(x.dop2)}</div>`:''}
+      ${x.dop2!=null?`<div class="kpi-dop2">${dopPartsKpi(x.dop2)}</div>`:''}
       <div class="sub">${x.s}</div>
       ${x.deposit?`<div class="kpi-deposit"><span class="dep-lbl">Total a depositar</span><div class="dep-amts"><span class="dep-val">USD: ${x.deposit.replace('$','')}</span>${x.depositDop?`<span class="dep-sep">-</span>${x.depositDop}`:''}</div></div>`:''}
     </div>`).join('');
@@ -1345,7 +1351,7 @@ function render(){
         </tr></thead><tbody>${rowsHtml}</tbody></table>
         <div class="paylink paylink-bottom">
           <span class="paylink-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg> Link de pago</span>
-          <input type="url" id="link-${g.fenix}" placeholder="Pega el link de pago y dale a Guardar" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')">
+          <input type="url" id="link-${g.fenix}" placeholder="Pega el link de pago (se guarda solo)" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')" onpaste="setTimeout(()=>saveLink('${g.fenix}'),50)">
           <button class="paylink-save" onclick="saveLink('${g.fenix}')">Guardar</button>
           ${justSavedLink===g.fenix?'<span class="paylink-ok">✓ Guardado</span>':''}
           ${links[g.fenix]?`<a class="paylink-open" href="${links[g.fenix].replace(/"/g,'&quot;')}" target="_blank" rel="noopener">Abrir</a>`:''}
@@ -1433,15 +1439,24 @@ function setLink(fenix,val){
   if(val) links[fenix]=val; else delete links[fenix];
   save(); render();
 }
-function saveLink(fenix){
+async function saveLink(fenix){
   const inp=document.getElementById('link-'+fenix);
   if(!inp) return;
   const val=inp.value.trim();
+  const prev = links[fenix];
   if(val) links[fenix]=val; else delete links[fenix];
   save();
-  dbUpsert('traslados_meta',[rowMeta(fenix)]);
+  const ok = await dbUpsert('traslados_meta',[rowMeta(fenix)]);
+  if(!ok){
+    // revertir en memoria y avisar; el input conserva lo escrito para reintentar
+    if(prev!==undefined) links[fenix]=prev; else delete links[fenix];
+    save();
+    showCopiedToastMsg('⚠ No se guardó el link. Revisa tu conexión e intenta de nuevo.', true);
+    return;
+  }
   justSavedLink=fenix;
   render();
+  showCopiedToastMsg('✓ Link guardado');
   setTimeout(()=>{ if(justSavedLink===fenix){ justSavedLink=null; render(); } }, 1800);
 }
 let justSavedLink=null;
@@ -1896,7 +1911,7 @@ function excRenderKpis(visible){
   });
   const comision=cobrado*0.035, depositar=cobrado-comision;
   const comisionDop = cobradoDop*0.035;
-  const depDopStr = nPaid===0?'':(`<span class="dep-dop">${dopParts(depDop)}</span>`+(faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa; no suman al DOP">⚠</span>':''));
+  const depDopStr = nPaid===0?'':(`<span class="dep-dop">${dopPartsKpi(depDop)}</span>`+(faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa; no suman al DOP">⚠</span>':''));
   const ventaSub=`<span class="vsub-main">${visible.length} excursion${visible.length!==1?'es':''}${hayFiltro?' (filtrado)':''}</span>`;
   const k=[
     {c:'amber',i:'<svg width="18" height="18" fill="none" stroke="#F5A623" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',l:'Total venta',v:fmt(total),s:ventaSub},
@@ -1909,7 +1924,7 @@ function excRenderKpis(visible){
       <div class="ic ${x.c}">${x.i}</div>
       <div class="lbl">${x.l}</div>
       <div class="val">${x.v}</div>
-      ${x.dop2!=null?`<div class="kpi-dop2">${dopParts(x.dop2)}</div>`:''}
+      ${x.dop2!=null?`<div class="kpi-dop2">${dopPartsKpi(x.dop2)}</div>`:''}
       <div class="sub">${x.s}</div>
       ${x.deposit?`<div class="kpi-deposit"><span class="dep-lbl">Total a depositar</span><div class="dep-amts"><span class="dep-val">USD: ${x.deposit.replace('$','')}</span>${x.depositDop?`<span class="dep-sep">-</span>${x.depositDop}`:''}</div></div>`:''}
     </div>`).join('');
@@ -1950,7 +1965,7 @@ function excRender(){
     const origin = '';
     const lnk=(excLinks[r.reserva]||'').replace(/"/g,'&quot;');
     const linkCell = `<div class="exc-linkwrap">
-        <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="https://…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')">
+        <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="Pega el link…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')" onpaste="setTimeout(()=>excSaveLink('${r.reserva}'),50)">
         <button class="exc-link-save" onclick="excSaveLink('${r.reserva}')" title="Guardar link">Guardar</button>
         ${excLinks[r.reserva]?`<a class="exc-link-open" href="${lnk}" target="_blank" rel="noopener" title="Abrir link de pago"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></a>`:''}
       </div>`;
@@ -2047,12 +2062,21 @@ function excCycleState(res){
     excSave(); excRender(); dbUpsert('excursiones',[rowExc(res)]);
   }
 }
-function excSaveLink(res){
+async function excSaveLink(res){
   const el=document.getElementById('exclink-'+res); if(!el) return;
   const val=el.value.trim();
+  const prev = excLinks[res];
   if(val) excLinks[res]=val; else delete excLinks[res];
-  excSave(); excRender();
-  dbUpsert('excursiones',[rowExc(res)]);
+  excSave();
+  const ok = await dbUpsert('excursiones',[rowExc(res)]);
+  if(!ok){
+    if(prev!==undefined) excLinks[res]=prev; else delete excLinks[res];
+    excSave();
+    showCopiedToastMsg('⚠ No se guardó el link. Revisa tu conexión e intenta de nuevo.', true);
+    return;
+  }
+  excRender();
+  showCopiedToastMsg('✓ Link guardado');
 }
 function excSaveNote(res){
   const el=document.getElementById('excnotes-'+res); if(!el) return;
