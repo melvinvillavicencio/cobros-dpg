@@ -1770,34 +1770,28 @@ function exportXlsx(){
   const out=[];
   const filtraFecha = !!(dFrom || dTo);
   const visibles = GROUPS.filter(matches);
+  const toComparable=(f)=>{
+    if(!f) return '';
+    const s=String(f).trim();
+    let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);   // dd/mm/yyyy
+    if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0');
+    m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);              // yyyy-mm-dd
+    if(m) return m[1]+m[2]+m[3];
+    return s;
+  };
   visibles.forEach(g=>{
-    // reservas del grupo que aplican (si hay filtro de fecha, solo las del rango)
-    const rows = g.rows.filter(r=>{
-      if(!filtraFecha) return true;
-      const p=pagos[r.reserva]||{};
-      return p.fecha && inRange(p.fecha);
-    });
+    // El grupo entra si pasa el filtro; pero consolidamos SIEMPRE todas
+    // las reservas del Fénix (IN + OUT), aunque alguna esté fuera del rango.
+    const rows = g.rows;
     if(!rows.length) return;
-    // fecha de viaje más antigua entre las reservas del grupo
-    const toComparable=(f)=>{
-      if(!f) return '';
-      const s=String(f).trim();
-      // dd/mm/yyyy -> yyyymmdd
-      let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0');
-      // yyyy-mm-dd -> yyyymmdd
-      m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if(m) return m[1]+m[2]+m[3];
-      return s;
-    };
-    let fechaViaje='';
-    let mejor='';
+    // fecha de viaje = la más antigua entre TODAS las reservas del Fénix
+    let fechaViaje='', mejor='';
     rows.forEach(r=>{
       if(!r.fecha) return;
       const c=toComparable(r.fecha);
       if(!mejor || c<mejor){ mejor=c; fechaViaje=r.fecha; }
     });
-    // monto total (suma de tarifas) en USD y DOP
+    // monto total = suma de TODAS las reservas del Fénix (USD y DOP)
     const totalUsd = rows.reduce((a,r)=>a+r.neta,0);
     let totalDop=0, faltaTasa=false;
     rows.forEach(r=>{
@@ -1813,6 +1807,8 @@ function exportXlsx(){
     });
   });
   if(!out.length){ alert('No hay reservas en el filtro actual para exportar.'); return; }
+  // ordenar por fecha de viaje ascendente
+  out.sort((a,b)=> toComparable(a['Fecha de viaje']) < toComparable(b['Fecha de viaje']) ? -1 : 1);
   const ws=XLSX.utils.json_to_sheet(out);
   ws['!cols']=[{wch:14},{wch:30},{wch:16},{wch:45}];
   const wb=XLSX.utils.book_new();
