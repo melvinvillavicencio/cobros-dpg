@@ -1036,7 +1036,14 @@ function fmtDOPint(n){ return 'RD$' + Math.round(Number(n)); }
 // RD$ y monto en spans separados: doble clic selecciona solo el número
 function dopParts(n){ const v=Math.round(Number(n)); return `<span class="dop-cur">RD$</span><span class="dop-amt copyable" title="Clic para copiar el monto" data-copy="${v}" onclick="event.stopPropagation();copyFromEl(this)">${v}</span>`; }
 function tasaDe(iso){ return (iso && tasas[iso]!=null) ? tasas[iso] : null; }
-function today(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function localISO(d){
+  // Devuelve YYYY-MM-DD usando la fecha LOCAL del navegador (no UTC)
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function today(){ return localISO(new Date()); }
 function copyFromEl(el){
   const txt = el.getAttribute('data-copy') || el.textContent.trim();
   copyText(txt, el);
@@ -1083,7 +1090,7 @@ function parseFecha(s){
   return new Date(+m[3], +m[2]-1, +m[1], 12, 0, 0);
 }
 function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
-function toISO(d){ return d ? d.toISOString().slice(0,10) : ''; }
+function toISO(d){ return d ? localISO(d) : ''; }
 function fmtFecha(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
 
 /* ---------- agrupar por ID Fénix ---------- */
@@ -1132,7 +1139,7 @@ function rebuild(recalcAll){
 }
 rebuild();
 
-function isoDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); }
+function isoDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return localISO(d); }
 function syncFilterUI(){
   // Traslados
   const df=document.getElementById('dFrom'), dt=document.getElementById('dTo');
@@ -1790,17 +1797,25 @@ function exportXlsx(){
       const c=toComparable(r.fecha);
       if(!mejor || c<mejor){ mejor=c; fechaViaje=r.fecha; }
     });
-    // monto total (suma de tarifas)
+    // monto total (suma de tarifas) en USD y DOP
     const totalUsd = rows.reduce((a,r)=>a+r.neta,0);
+    let totalDop=0, faltaTasa=false;
+    rows.forEach(r=>{
+      const p=pagos[r.reserva]||{};
+      const t=tasaDe(p.fecha);
+      if(t!=null) totalDop += r.neta*t; else faltaTasa=true;
+    });
     out.push({
       'ID Fenix': g.fenix,
       'Fecha de viaje': fechaViaje,
-      'Monto total (USD)': Math.round(totalUsd*100)/100
+      'Monto total (USD)': Math.round(totalUsd*100)/100,
+      'Monto total (DOP)': faltaTasa ? '' : Math.round(totalDop),
+      'Link de pago': links[g.fenix]||''
     });
   });
   if(!out.length){ alert('No hay reservas en el filtro actual para exportar.'); return; }
   const ws=XLSX.utils.json_to_sheet(out);
-  ws['!cols']=[{wch:16},{wch:14},{wch:16}];
+  ws['!cols']=[{wch:16},{wch:14},{wch:16},{wch:16},{wch:45}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Cobros');
   XLSX.writeFile(wb,`Cobros_Traslados_DPG_${today()}.xlsx`);
