@@ -2109,29 +2109,30 @@ function excSetFilter(f){ excFilter=f; excPage=1; excRender(); }
 
 function excExportXlsx(){
   const visibles = EXC_DATA.filter(excMatches);
+  const toComparable=(f)=>{
+    if(!f) return '';
+    const s=String(f).trim();
+    let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);   // dd/mm/yyyy
+    if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0');
+    m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);              // yyyy-mm-dd
+    if(m) return m[1]+m[2]+m[3];
+    return s;
+  };
   const out=visibles.map(r=>{
     const p=excPagos[r.reserva]||{};
     const tasaR=tasaDe(p.fecha);
-    const estado = p.cancelada?'Cancelada':(p.declinada?'Declinada':(p.pagado?'Cobrado':'Pendiente'));
     return {
-      'ID Reserva':r.reserva,
-      'Titular':r.titular,
-      'Actividad':r.actividad||'',
-      'Fecha de actividad':r.fecha,
-      'Valor USD':r.neta,
-      'Tasa USD/DOP':tasaR!=null?tasaR:'',
-      'Valor DOP':tasaR!=null?Math.round(r.neta*tasaR*100)/100:'',
-      'Fecha de cobro':p.fecha?fmtFecha(p.fecha):'',
-      'Estado':estado,
-      'Link de pago':excLinks[r.reserva]||'',
-      'Notas':p.notas||'',
-      'Comentario declinación':p.declinada?(p.comentario||''):'',
-      'Comentario cancelación':p.cancelada?(p.comentarioCancel||''):''
+      'Fecha de viaje': r.fecha||'',
+      'Nombre': r.titular||'',
+      'Monto total (DOP)': tasaR!=null ? Math.round(r.neta*tasaR) : '',
+      'Link de pago': excLinks[r.reserva]||'',
+      'Servicio': 'Excursiones'
     };
   });
   if(!out.length){ alert('No hay reservas en el filtro actual para exportar.'); return; }
+  out.sort((a,b)=> toComparable(a['Fecha de viaje']) < toComparable(b['Fecha de viaje']) ? -1 : 1);
   const ws=XLSX.utils.json_to_sheet(out);
-  ws['!cols']=[{wch:12},{wch:30},{wch:26},{wch:16},{wch:15},{wch:12},{wch:12},{wch:14},{wch:11},{wch:40},{wch:30},{wch:30},{wch:30}];
+  ws['!cols']=[{wch:14},{wch:30},{wch:16},{wch:45},{wch:14}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Excursiones');
   XLSX.writeFile(wb,`Cobros_Excursiones_DPG_${today()}.xlsx`);
