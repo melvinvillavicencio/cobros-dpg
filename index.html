@@ -1784,12 +1784,12 @@ function exportXlsx(){
     // las reservas del Fénix (IN + OUT), aunque alguna esté fuera del rango.
     const rows = g.rows;
     if(!rows.length) return;
-    // fecha de viaje = la más antigua entre TODAS las reservas del Fénix
+    // fecha de viaje = la más RECIENTE entre TODAS las reservas del Fénix
     let fechaViaje='', mejor='';
     rows.forEach(r=>{
       if(!r.fecha) return;
       const c=toComparable(r.fecha);
-      if(!mejor || c<mejor){ mejor=c; fechaViaje=r.fecha; }
+      if(!mejor || c>mejor){ mejor=c; fechaViaje=r.fecha; }
     });
     // monto total = suma de TODAS las reservas del Fénix (USD y DOP)
     const totalUsd = rows.reduce((a,r)=>a+r.neta,0);
