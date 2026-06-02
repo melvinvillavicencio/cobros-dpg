@@ -1254,7 +1254,14 @@ function render(){
   const list=document.getElementById('list');
   const visible=GROUPS.filter(matches);
   renderKpis(visible);
-  const tc=document.getElementById('tabCountTras'); if(tc) tc.textContent=DATA.length;
+  const tc=document.getElementById('tabCountTras');
+  if(tc){
+    const filtraFecha = !!(dFrom || dTo);
+    const nFenix = filtraFecha
+      ? GROUPS.filter(g=>g.rows.some(r=>{const p=pagos[r.reserva]; return p && inRange(p.fecha);})).length
+      : GROUPS.length;
+    tc.textContent = nFenix;
+  }
   const pager=document.getElementById('pager');
   if(!visible.length){ list.innerHTML='<div class="empty">Sin resultados para tu búsqueda.</div>'; pager.innerHTML=''; renderRates(); return; }
 
@@ -1896,7 +1903,14 @@ function excRender(){
   const pager=document.getElementById('excPager');
   const visible=EXC_DATA.filter(excMatches);
   excRenderKpis(visible);
-  document.getElementById('tabCountExc').textContent=EXC_DATA.length;
+  const etc=document.getElementById('tabCountExc');
+  if(etc){
+    const filtraFecha = !!(excDFrom || excDTo);
+    const nExc = filtraFecha
+      ? EXC_DATA.filter(r=>{const p=excPagos[r.reserva]; return p && excInRange(p.fecha);}).length
+      : EXC_DATA.length;
+    etc.textContent = nExc;
+  }
   excUpdateBulk();
   if(!visible.length){ list.innerHTML='<div class="empty">Sin resultados para tu búsqueda.</div>'; pager.innerHTML=''; excRenderRates(); return; }
   const totalPages = excPerPage==='all'?1:Math.max(1,Math.ceil(visible.length/excPerPage));
