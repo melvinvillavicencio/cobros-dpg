@@ -100,12 +100,13 @@
   .kpi .lbl{font-size:12.5px;color:var(--slate);font-weight:600;margin-bottom:4px}
   .kpi .val{font-size:24px;font-weight:800;letter-spacing:-.5px}
   .kpi .sub{font-size:12px;color:var(--slate);margin-top:2px}
+  .kpi-dop2{font-size:15px;font-weight:800;color:#2F6BE0;margin-top:3px}
   .kpi-deposit{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:3px}
   .dep-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#2F6BE0}
   .dep-amts{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}
   .dep-val{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
   .dep-sep{color:var(--slate);font-weight:700}
-  .dep-dop{font-size:15px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:2px 9px;border-radius:7px}
+  .dep-dop{font-size:18px;font-weight:800;color:#2F6BE0;background:#E3ECFD;padding:4px 11px;border-radius:8px;letter-spacing:-.2px}
   .dep-warn{color:#C2671A;font-size:13px;margin-left:2px;cursor:help}
 
   /* Toolbar */
@@ -1178,18 +1179,23 @@ function renderKpis(visible){
   const totalGlobal = DATA.length;
   const hayFiltro = (filter!=='all') || query.trim() || dFrom || dTo;
   let total=0, cobrado=0, pendiente=0, nResPaid=0;
-  let depositarDop=0, faltaTasa=false;
+  let depositarDop=0, cobradoDop=0, pendienteDop=0, faltaTasaPend=false, faltaTasa=false;
   rows.forEach(r=>{
     total+=r.neta;
     if(pagos[r.reserva]&&pagos[r.reserva].pagado){
       cobrado+=r.neta; nResPaid++;
       const t=tasaDe(pagos[r.reserva].fecha);
-      if(t!=null) depositarDop += r.neta*(1-0.035)*t;
+      if(t!=null){ depositarDop += r.neta*(1-0.035)*t; cobradoDop += r.neta*t; }
       else faltaTasa=true;
-    } else pendiente+=r.neta;
+    } else {
+      pendiente+=r.neta;
+      const t=tasaDe((pagos[r.reserva]||{}).fecha);
+      if(t!=null) pendienteDop += r.neta*t; else faltaTasaPend=true;
+    }
   });
   const comision = cobrado * 0.035;
   const depositar = cobrado - comision;
+  const comisionDop = cobradoDop * 0.035;
   const depDopStr = nResPaid===0 ? '' : (`<span class="dep-dop">${dopParts(depositarDop)}</span>` + (faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa registrada; no suman al DOP">⚠</span>':''));
   let nUnicas=0, nDobles=0;
   if(filtraFecha){
@@ -1202,15 +1208,16 @@ function renderKpis(visible){
     + `<span class="vsub-li">${nDobles} en grupo</span>`;
   const k=[
     {c:'amber',i:'<svg width="18" height="18" fill="none" stroke="#F5A623" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', l:'Total venta', v:fmt(total), s:ventaSub},
-    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>', l:'Cobrado', v:fmt(cobrado), s:nResPaid+' reservas pagadas'},
-    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>', l:'Pendiente', v:fmt(pendiente), s:(rows.length-nResPaid)+' reservas'},
-    {c:'blue', i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', l:'Comisión Azul', v:fmt(comision), s:'3.5% sobre cobrado', deposit:fmt(depositar), depositDop:depDopStr},
+    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>', l:'Cobrado', v:fmt(cobrado), dop2:(nResPaid>0?cobradoDop:null), s:nResPaid+' reservas pagadas'},
+    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>', l:'Pendiente', v:fmt(pendiente), dop2:((rows.length-nResPaid)>0 && !faltaTasaPend?pendienteDop:null), s:(rows.length-nResPaid)+' reservas'},
+    {c:'blue', i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>', l:'Comisión Azul', v:fmt(comision), dop2:(nResPaid>0?comisionDop:null), s:'3.5% sobre cobrado', deposit:fmt(depositar), depositDop:depDopStr},
   ];
   document.getElementById('kpis').innerHTML = k.map(x=>`
     <div class="kpi">
       <div class="ic ${x.c}">${x.i}</div>
       <div class="lbl">${x.l}</div>
       <div class="val">${x.v}</div>
+      ${x.dop2!=null?`<div class="kpi-dop2">${dopParts(x.dop2)}</div>`:''}
       <div class="sub">${x.s}</div>
       ${x.deposit?`<div class="kpi-deposit"><span class="dep-lbl">Total a depositar</span><div class="dep-amts"><span class="dep-val">USD: ${x.deposit.replace('$','')}</span>${x.depositDop?`<span class="dep-sep">-</span>${x.depositDop}`:''}</div></div>`:''}
     </div>`).join('');
@@ -1257,10 +1264,18 @@ function render(){
   const tc=document.getElementById('tabCountTras');
   if(tc){
     const filtraFecha = !!(dFrom || dTo);
-    const nFenix = filtraFecha
-      ? GROUPS.filter(g=>g.rows.some(r=>{const p=pagos[r.reserva]; return p && inRange(p.fecha);})).length
-      : GROUPS.length;
-    tc.textContent = nFenix;
+    let n=0;
+    GROUPS.forEach(g=>{
+      const mg=meta[g.fenix]||{};
+      if(mg.declinada || mg.cancelada) return; // no cuentan declinadas/canceladas
+      g.rows.forEach(r=>{
+        const p=pagos[r.reserva]||{};
+        if(p.pagado) return;                    // solo pendientes de cobro
+        if(filtraFecha && !(p.fecha && inRange(p.fecha))) return;
+        n++;
+      });
+    });
+    tc.textContent = n;
   }
   const pager=document.getElementById('pager');
   if(!visible.length){ list.innerHTML='<div class="empty">Sin resultados para tu búsqueda.</div>'; pager.innerHTML=''; renderRates(); return; }
@@ -1872,27 +1887,29 @@ function excMatches(r){
 function excRenderKpis(visible){
   const totalGlobal=EXC_DATA.length;
   const hayFiltro=(excFilter!=='all')||excQuery.trim()||excDFrom||excDTo;
-  let total=0,cobrado=0,pendiente=0,nPaid=0,depDop=0,faltaTasa=false;
+  let total=0,cobrado=0,pendiente=0,nPaid=0,depDop=0,cobradoDop=0,pendienteDop=0,faltaTasaPend=false,faltaTasa=false;
   visible.forEach(r=>{
     total+=r.neta;
     const p=excPagos[r.reserva]||{};
-    if(p.pagado){ cobrado+=r.neta; nPaid++; const t=tasaDe(p.fecha); if(t!=null) depDop+=r.neta*(1-0.035)*t; else faltaTasa=true; }
-    else pendiente+=r.neta;
+    if(p.pagado){ cobrado+=r.neta; nPaid++; const t=tasaDe(p.fecha); if(t!=null){ depDop+=r.neta*(1-0.035)*t; cobradoDop+=r.neta*t; } else faltaTasa=true; }
+    else { pendiente+=r.neta; const t=tasaDe(p.fecha); if(t!=null) pendienteDop+=r.neta*t; else faltaTasaPend=true; }
   });
   const comision=cobrado*0.035, depositar=cobrado-comision;
+  const comisionDop = cobradoDop*0.035;
   const depDopStr = nPaid===0?'':(`<span class="dep-dop">${dopParts(depDop)}</span>`+(faltaTasa?'<span class="dep-warn" title="Hay reservas cobradas sin tasa; no suman al DOP">⚠</span>':''));
   const ventaSub=`<span class="vsub-main">${visible.length} excursion${visible.length!==1?'es':''}${hayFiltro?' (filtrado)':''}</span>`;
   const k=[
     {c:'amber',i:'<svg width="18" height="18" fill="none" stroke="#F5A623" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',l:'Total venta',v:fmt(total),s:ventaSub},
-    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',l:'Cobrado',v:fmt(cobrado),s:nPaid+' excursiones pagadas'},
-    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',l:'Pendiente',v:fmt(pendiente),s:(visible.length-nPaid)+' excursiones'},
-    {c:'blue',i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',l:'Comisión Azul',v:fmt(comision),s:'3.5% sobre cobrado',deposit:fmt(depositar),depositDop:depDopStr},
+    {c:'green',i:'<svg width="18" height="18" fill="none" stroke="#2BA84A" stroke-width="2.4" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',l:'Cobrado',v:fmt(cobrado),dop2:(nPaid>0?cobradoDop:null),s:nPaid+' excursiones pagadas'},
+    {c:'magenta',i:'<svg width="18" height="18" fill="none" stroke="#E63462" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',l:'Pendiente',v:fmt(pendiente),dop2:((visible.length-nPaid)>0 && !faltaTasaPend?pendienteDop:null),s:(visible.length-nPaid)+' excursiones'},
+    {c:'blue',i:'<svg width="18" height="18" fill="none" stroke="#2F6BE0" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',l:'Comisión Azul',v:fmt(comision),dop2:(nPaid>0?comisionDop:null),s:'3.5% sobre cobrado',deposit:fmt(depositar),depositDop:depDopStr},
   ];
   document.getElementById('excKpis').innerHTML = k.map(x=>`
     <div class="kpi">
       <div class="ic ${x.c}">${x.i}</div>
       <div class="lbl">${x.l}</div>
       <div class="val">${x.v}</div>
+      ${x.dop2!=null?`<div class="kpi-dop2">${dopParts(x.dop2)}</div>`:''}
       <div class="sub">${x.s}</div>
       ${x.deposit?`<div class="kpi-deposit"><span class="dep-lbl">Total a depositar</span><div class="dep-amts"><span class="dep-val">USD: ${x.deposit.replace('$','')}</span>${x.depositDop?`<span class="dep-sep">-</span>${x.depositDop}`:''}</div></div>`:''}
     </div>`).join('');
@@ -1906,10 +1923,14 @@ function excRender(){
   const etc=document.getElementById('tabCountExc');
   if(etc){
     const filtraFecha = !!(excDFrom || excDTo);
-    const nExc = filtraFecha
-      ? EXC_DATA.filter(r=>{const p=excPagos[r.reserva]; return p && excInRange(p.fecha);}).length
-      : EXC_DATA.length;
-    etc.textContent = nExc;
+    let n=0;
+    EXC_DATA.forEach(r=>{
+      const p=excPagos[r.reserva]||{};
+      if(p.pagado || p.declinada || p.cancelada) return; // solo pendientes
+      if(filtraFecha && !(p.fecha && excInRange(p.fecha))) return;
+      n++;
+    });
+    etc.textContent = n;
   }
   excUpdateBulk();
   if(!visible.length){ list.innerHTML='<div class="empty">Sin resultados para tu búsqueda.</div>'; pager.innerHTML=''; excRenderRates(); return; }
