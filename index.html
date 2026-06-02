@@ -1807,15 +1807,15 @@ function exportXlsx(){
     });
     out.push({
       'ID Fenix': g.fenix,
+      'Nombre': g.rows[0].titular||'',
       'Fecha de viaje': fechaViaje,
-      'Monto total (USD)': Math.round(totalUsd*100)/100,
       'Monto total (DOP)': faltaTasa ? '' : Math.round(totalDop),
       'Link de pago': links[g.fenix]||''
     });
   });
   if(!out.length){ alert('No hay reservas en el filtro actual para exportar.'); return; }
   const ws=XLSX.utils.json_to_sheet(out);
-  ws['!cols']=[{wch:16},{wch:14},{wch:16},{wch:16},{wch:45}];
+  ws['!cols']=[{wch:16},{wch:30},{wch:14},{wch:16},{wch:45}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Cobros');
   XLSX.writeFile(wb,`Cobros_Traslados_DPG_${today()}.xlsx`);
