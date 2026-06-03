@@ -511,6 +511,19 @@
   .im-overlay{position:fixed;inset:0;background:rgba(20,20,30,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
   .im-overlay.show{display:flex}
   .im-box{background:#fff;border-radius:16px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+  #importModal .im-box{max-width:620px;max-height:88vh;display:flex;flex-direction:column}
+  #importModal #imBody{overflow-y:auto}
+  .im-detalle{margin:14px 0 4px;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .im-detalle-h{background:#F5F8FE;color:#2F6BE0;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.3px;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .im-detalle-scroll{max-height:280px;overflow-y:auto}
+  .im-table{width:100%;border-collapse:collapse;font-size:13px}
+  .im-table thead th{position:sticky;top:0;background:#fff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--slate);font-weight:700;padding:8px 10px;border-bottom:1.5px solid var(--line)}
+  .im-table tbody td{padding:8px 10px;border-bottom:1px solid #F0F1F3;white-space:nowrap}
+  .im-table tbody tr:last-child td{border-bottom:none}
+  .im-monto{font-weight:700;text-align:right}
+  .im-tag{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:7px;text-transform:uppercase;letter-spacing:.3px}
+  .im-tag.t{background:var(--teal-soft);color:var(--teal-dark)}
+  .im-tag.e{background:#FCE3EA;color:var(--magenta-dark)}
   .im-head{background:linear-gradient(135deg,var(--magenta),var(--magenta-dark));color:#fff;font-weight:700;font-size:18px;padding:18px 22px}
   .im-file{padding:14px 22px 4px;color:var(--teal-dark);font-weight:600;font-size:14px;word-break:break-all}
   #imBody{padding:8px 22px 4px}
@@ -819,7 +832,13 @@
 /* ===================== SUPABASE (base de datos + login) ===================== */
 const SUPABASE_URL = 'https://tmcibjgvbdqdgdnjqhfd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_F75xUfkVTG4CopLRSdSMAw_MLV2pcDQ';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
 
 function setSync(state){
   const el=document.getElementById('syncStatus'); if(!el) return;
@@ -911,6 +930,21 @@ async function loadAllFromDB(){
     setSync('ok');
   }catch(e){
     console.error(e); setSync('error');
+    const msg=(e&&e.message)?e.message.toLowerCase():'';
+    if(msg.includes('jwt') || msg.includes('expired') || msg.includes('token')){
+      // sesión vencida: intentar refrescar; si no, mandar a login limpio
+      try{
+        const { data, error } = await sb.auth.refreshSession();
+        if(!error && data && data.session){
+          await loadAllFromDB();   // reintenta con sesión renovada
+          return;
+        }
+      }catch(_){}
+      sessionStorage.setItem('idleClosed','1');
+      try{ await sb.auth.signOut(); }catch(_){}
+      location.reload();
+      return;
+    }
     alert('No se pudieron cargar los datos: '+e.message);
   }
 }
@@ -1006,7 +1040,7 @@ window.addEventListener('load', async ()=>{
     if(sessionStorage.getItem('idleClosed')){
       sessionStorage.removeItem('idleClosed');
       const e=document.getElementById('loginErr');
-      if(e){ e.textContent='Tu sesión se cerró por inactividad. Vuelve a entrar.'; e.style.color='#9A6A00'; }
+      if(e){ e.textContent='Tu sesión se cerró por seguridad. Vuelve a entrar.'; e.style.color='#9A6A00'; }
     }
   }
 });
@@ -1351,7 +1385,7 @@ function render(){
         </tr></thead><tbody>${rowsHtml}</tbody></table>
         <div class="paylink paylink-bottom">
           <span class="paylink-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg> Link de pago</span>
-          <input type="url" id="link-${g.fenix}" placeholder="Pega el link de pago (se guarda solo)" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')" onpaste="setTimeout(()=>saveLink('${g.fenix}'),50)">
+          <input type="url" id="link-${g.fenix}" placeholder="Pega el link de pago (se guarda solo)" value="${(links[g.fenix]||'').replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')saveLink('${g.fenix}')" onpaste="setTimeout(()=>saveLink('${g.fenix}'),50)" onblur="saveLinkIfChanged('${g.fenix}')">
           <button class="paylink-save" onclick="saveLink('${g.fenix}')">Guardar</button>
           ${justSavedLink===g.fenix?'<span class="paylink-ok">✓ Guardado</span>':''}
           ${links[g.fenix]?`<a class="paylink-open" href="${links[g.fenix].replace(/"/g,'&quot;')}" target="_blank" rel="noopener">Abrir</a>`:''}
@@ -1460,6 +1494,12 @@ async function saveLink(fenix){
   setTimeout(()=>{ if(justSavedLink===fenix){ justSavedLink=null; render(); } }, 1800);
 }
 let justSavedLink=null;
+function saveLinkIfChanged(fenix){
+  const inp=document.getElementById('link-'+fenix); if(!inp) return;
+  const val=inp.value.trim();
+  const actual=(links[fenix]||'');
+  if(val!==actual) saveLink(fenix);   // solo guarda si de verdad cambió (incluye borrarlo)
+}
 function addRate(){
   const d=document.getElementById('rateDate').value;
   const v=parseFloat(document.getElementById('rateVal').value);
@@ -1759,12 +1799,37 @@ function showImportModal(name, leidas, nTras, nExc, dup, vacias){
   const m=document.getElementById('importModal');
   const total=nTras+nExc;
   document.getElementById('imName').textContent=name;
+  // armar detalle de reservas nuevas (traslados + excursiones)
+  const det=[];
+  (pendingImport?pendingImport.tras:[]).forEach(r=>det.push({reserva:r.reserva, nombre:r.titular, fecha:r.fecha, tipo:'Traslado', monto:r.neta}));
+  (pendingImport?pendingImport.exc:[]).forEach(r=>det.push({reserva:r.reserva, nombre:r.titular, fecha:r.fecha, tipo:'Excursión', monto:r.neta}));
+  let tablaHtml='';
+  if(det.length){
+    const filas=det.map(d=>`<tr>
+      <td>${d.reserva}</td>
+      <td>${(d.nombre||'').replace(/</g,'&lt;')}</td>
+      <td>${d.fecha||''}</td>
+      <td><span class="im-tag ${d.tipo==='Traslado'?'t':'e'}">${d.tipo}</span></td>
+      <td class="im-monto">$${d.monto.toFixed(2)}</td>
+    </tr>`).join('');
+    tablaHtml=`
+    <div class="im-detalle">
+      <div class="im-detalle-h">Reservas nuevas a agregar (${det.length})</div>
+      <div class="im-detalle-scroll">
+        <table class="im-table">
+          <thead><tr><th>ID Reserva</th><th>Nombre</th><th>Fecha</th><th>Tipo</th><th>Monto</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }
   document.getElementById('imBody').innerHTML=`
     <div class="im-row"><span>Filas leídas</span><b>${leidas}</b></div>
     <div class="im-row im-new"><span>Traslados nuevos</span><b>${nTras}</b></div>
     <div class="im-row im-new"><span>Excursiones nuevas</span><b>${nExc}</b></div>
     <div class="im-row"><span>Duplicadas (se omiten)</span><b>${dup}</b></div>
     ${vacias?`<div class="im-row"><span>Sin ID Reserva (ignoradas)</span><b>${vacias}</b></div>`:''}
+    ${tablaHtml}
     <div class="im-note">⚠ Cada fila se asigna a su pestaña según <b>Tipo de reserva</b>. Al confirmar se <b>recalcularán todas las fechas de cobro</b> (incluidas las editadas a mano).</div>`;
   document.getElementById('imConfirm').disabled = (total===0);
   document.getElementById('imConfirm').textContent = total===0 ? 'Nada que importar' : `Importar ${total} reserva${total!==1?'s':''}`;
@@ -1965,7 +2030,7 @@ function excRender(){
     const origin = '';
     const lnk=(excLinks[r.reserva]||'').replace(/"/g,'&quot;');
     const linkCell = `<div class="exc-linkwrap">
-        <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="Pega el link…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')" onpaste="setTimeout(()=>excSaveLink('${r.reserva}'),50)">
+        <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="Pega el link…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')" onpaste="setTimeout(()=>excSaveLink('${r.reserva}'),50)" onblur="excSaveLinkIfChanged('${r.reserva}')">
         <button class="exc-link-save" onclick="excSaveLink('${r.reserva}')" title="Guardar link">Guardar</button>
         ${excLinks[r.reserva]?`<a class="exc-link-open" href="${lnk}" target="_blank" rel="noopener" title="Abrir link de pago"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></a>`:''}
       </div>`;
@@ -2077,6 +2142,12 @@ async function excSaveLink(res){
   }
   excRender();
   showCopiedToastMsg('✓ Link guardado');
+}
+function excSaveLinkIfChanged(res){
+  const el=document.getElementById('exclink-'+res); if(!el) return;
+  const val=el.value.trim();
+  const actual=(excLinks[res]||'');
+  if(val!==actual) excSaveLink(res);
 }
 function excSaveNote(res){
   const el=document.getElementById('excnotes-'+res); if(!el) return;
