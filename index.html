@@ -80,6 +80,9 @@
   .act-btn.export{background:linear-gradient(135deg,var(--magenta) 0%,var(--magenta-dark) 100%);color:#fff;box-shadow:0 4px 14px rgba(230,52,98,.28)}
   .act-btn.export .act-ic{background:rgba(255,255,255,.22)}
   .act-btn.export:hover{box-shadow:0 6px 20px rgba(230,52,98,.40)}
+  .act-btn.audit{background:#FFF4E0;color:#9A6A00;border:1.5px solid #F5D88A}
+  .act-btn.audit .act-ic{background:rgba(154,106,0,.12)}
+  .act-btn.audit:hover{background:#FFEDC9}
   header.top p{font-size:14px;opacity:.92;margin-top:4px}
 
   /* KPIs */
@@ -477,7 +480,12 @@
         <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg></span>
         Exportar a Sheets
       </button>
+      <button class="act-btn audit" onclick="document.getElementById('auditFile').click()" title="Sube un Excel con una columna de ID Fénix: esas reservas vuelven a Pendiente y se marcan con nota 'auditoria'">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        Auditoría
+      </button>
       <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this.files[0])">
+      <input type="file" id="auditFile" accept=".xlsx,.xls" style="display:none" onchange="auditImport(this.files[0]); this.value='';">
     </div>
     </div>
   </div>
@@ -541,7 +549,7 @@
   .im-tag.e{background:#FCE3EA;color:var(--magenta-dark)}
   .im-head{background:linear-gradient(135deg,var(--magenta),var(--magenta-dark));color:#fff;font-weight:700;font-size:18px;padding:18px 22px}
   .im-file{padding:14px 22px 4px;color:var(--teal-dark);font-weight:600;font-size:14px;word-break:break-all}
-  #imBody{padding:8px 22px 4px}
+  #imBody, #auditBody{padding:8px 22px 4px}
   .im-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #eee;font-size:15px}
   .im-row b{font-size:16px}
   .im-row.im-new{color:var(--teal-dark)}
@@ -803,6 +811,16 @@
       <div class="im-actions">
         <button class="im-cancel" onclick="cancelImport()">Cancelar</button>
         <button class="im-ok" id="imConfirm" onclick="confirmImport()">Importar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="auditModal" class="im-overlay">
+    <div class="im-box">
+      <div class="im-head">Resultado de auditoría</div>
+      <div id="auditBody"></div>
+      <div class="im-actions">
+        <button class="im-ok" onclick="closeAuditModal()" style="margin-left:auto">Entendido</button>
       </div>
     </div>
   </div>
@@ -1795,6 +1813,121 @@ function excelDateToDDMMYYYY(v){
 }
 
 let pendingImport=null; // {tras:[], exc:[]}
+/* ---- Auditoría: Excel con columna de ID Fénix → reservas de traslados vuelven a Pendiente + nota 'auditoria' ---- */
+function auditImport(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      // leer como matriz: tomamos la primera columna de cada fila como Fénix
+      const matriz=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(!matriz.length){ alert('El archivo no tiene filas.'); return; }
+      // detectar si la primera fila es encabezado (texto tipo "fenix"/"id")
+      let inicio=0;
+      const prim=String((matriz[0]||[])[0]||'').trim().toLowerCase();
+      if(prim && !/^\d+$/.test(prim)) inicio=1; // si no es puro número, es encabezado
+      const fenixSet=new Set();
+      for(let i=inicio;i<matriz.length;i++){
+        const v=String((matriz[i]||[])[0]||'').trim();
+        if(v) fenixSet.add(v);
+      }
+      const fenixList=[...fenixSet];
+      if(!fenixList.length){ alert('No se encontró ningún ID Fénix en la primera columna.'); return; }
+
+      const ov=document.getElementById('loadingOverlay');
+      if(ov){ ov.querySelector('.loading-title').textContent='Procesando auditoría…'; ov.querySelector('.loading-sub').textContent='Actualizando reservas a Pendiente.'; ov.classList.add('show'); }
+
+      // 1) Buscar en la base TODAS las reservas de traslados de esos Fénix (por si no están cargadas en memoria)
+      const encontradas=[];   // filas traslados
+      const noEncontrados=[];
+      const step=200;
+      for(let i=0;i<fenixList.length;i+=step){
+        const lote=fenixList.slice(i,i+step);
+        const { data, error } = await sb.from('traslados').select('*').in('fenix', lote);
+        if(error) throw error;
+        encontradas.push(...data);
+      }
+      const fenixHallados=new Set(encontradas.map(r=>String(r.fenix)));
+      fenixList.forEach(f=>{ if(!fenixHallados.has(f)) noEncontrados.push(f); });
+
+      if(!encontradas.length){
+        if(ov) ov.classList.remove('show');
+        showAuditModal(fenixList.length, 0, 0, noEncontrados);
+        restoreLoadingTexts();
+        return;
+      }
+
+      // 2) Actualizar traslados → pendiente (pagado=false) y limpiar fecha de pago manual? mantenemos fecha, solo estado
+      const trasUpdates=encontradas.map(r=>({
+        reserva:r.reserva, fenix:r.fenix, fecha:r.fecha, modalidad:r.modalidad, titular:r.titular, neta:r.neta,
+        pago_fecha:r.pago_fecha, pago_manual:r.pago_manual, pagado:false
+      }));
+      // 3) Actualizar meta de cada Fénix → quitar declinada/cancelada, nota 'auditoria'
+      const metaUpdates=[...fenixHallados].map(f=>({
+        fenix:f, notas:'auditoria', declinada:false, comentario:null, cancelada:false, comentario_cancel:null,
+        link:(links[f]||null)
+      }));
+
+      // guardar en lotes
+      let okT=true, okM=true;
+      for(let i=0;i<trasUpdates.length;i+=500){
+        const r=await dbUpsert('traslados', trasUpdates.slice(i,i+500)); if(!r) okT=false;
+      }
+      for(let i=0;i<metaUpdates.length;i+=500){
+        const r=await dbUpsert('traslados_meta', metaUpdates.slice(i,i+500)); if(!r) okM=false;
+      }
+
+      // 4) Reflejar en memoria local (si la reserva/fenix ya estaba cargada o no)
+      encontradas.forEach(r=>{
+        if(!DATA.some(x=>x.reserva===r.reserva))
+          DATA.push({fenix:r.fenix, reserva:r.reserva, fecha:r.fecha, modalidad:r.modalidad, titular:r.titular, neta:Number(r.neta)||0});
+        pagos[r.reserva]={ fecha:r.pago_fecha||'', manual:!!r.pago_manual, pagado:false };
+      });
+      [...fenixHallados].forEach(f=>{
+        meta[f]={ notas:'auditoria', declinada:false, comentario:'', cancelada:false, comentarioCancel:'' };
+      });
+      rebuild(); render();
+
+      if(ov) ov.classList.remove('show');
+      restoreLoadingTexts();
+      if(!okT || !okM){
+        showCopiedToastMsg('⚠ Algunas actualizaciones no se guardaron. Revisa tu conexión.', true);
+      }
+      showAuditModal(fenixList.length, fenixHallados.size, encontradas.length, noEncontrados);
+    }catch(err){
+      console.error(err);
+      const ov=document.getElementById('loadingOverlay'); if(ov) ov.classList.remove('show');
+      restoreLoadingTexts();
+      alert('No se pudo procesar la auditoría: '+(err.message||err));
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function restoreLoadingTexts(){
+  const ov=document.getElementById('loadingOverlay'); if(!ov) return;
+  const t=ov.querySelector('.loading-title'), s=ov.querySelector('.loading-sub');
+  if(t) t.textContent='Cargando datos…';
+  if(s) s.textContent='Estamos trayendo tus cobros desde la base de datos.';
+}
+function showAuditModal(totalFenix, fenixOk, nReservas, noEncontrados){
+  const m=document.getElementById('auditModal');
+  let html=`
+    <div class="im-row"><span>Fénix en el archivo</span><b>${totalFenix}</b></div>
+    <div class="im-row im-new"><span>Fénix encontrados y actualizados</span><b>${fenixOk}</b></div>
+    <div class="im-row"><span>Reservas regresadas a Pendiente</span><b>${nReservas}</b></div>
+    <div class="im-row"><span>Fénix no encontrados</span><b>${noEncontrados.length}</b></div>`;
+  if(noEncontrados.length){
+    html+=`<div class="im-detalle"><div class="im-detalle-h">No encontrados (${noEncontrados.length})</div>
+      <div class="im-detalle-scroll" style="padding:10px 12px;font-size:13px;line-height:1.7">${noEncontrados.map(f=>`<span class="im-tag t" style="margin:2px 4px 2px 0;display:inline-block">${f}</span>`).join('')}</div></div>`;
+  }
+  html+=`<div class="im-note">Las reservas de traslados de estos Fénix volvieron a <b>Pendiente</b> y su nota se reemplazó por <b>"auditoria"</b>.</div>`;
+  document.getElementById('auditBody').innerHTML=html;
+  m.classList.add('show');
+}
+function closeAuditModal(){ document.getElementById('auditModal').classList.remove('show'); }
+
 function importExcel(file){
   if(!file) return;
   const reader=new FileReader();
