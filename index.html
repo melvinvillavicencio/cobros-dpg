@@ -437,6 +437,10 @@
       <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></span>
       Sheet
     </button>
+    <button class="tab-btn" data-tab="tasas" onclick="switchTab('tasas')">
+      <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+      Tasas
+    </button>
   </div>
 
   <div class="tabpage active" id="page-traslados">
@@ -505,26 +509,6 @@
     </div>
   </div>
 
-  <div class="rates" id="rates">
-    <div class="rates-head" onclick="document.getElementById('rates').classList.toggle('open')">
-      <svg class="rates-caret" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-      <span class="rates-title">Tasas de cambio por día (USD → DOP)</span>
-      <span class="rates-info">Si una fecha no tiene tasa, no se calcula el DOP</span>
-    </div>
-    <div class="rates-body">
-      <div class="rate-add">
-        <input type="date" id="rateDate">
-        <input type="number" step="0.01" min="0" id="rateVal" placeholder="Tasa (ej. 58.60)">
-        <button class="chip-btn df-search" onclick="addRate()">Guardar tasa</button>
-      </div>
-      <div class="rate-search">
-        <input type="text" id="rateSearch" placeholder="Buscar por fecha (ej. 13/05 o 2026-05) o valor…" oninput="renderRates()">
-      </div>
-      <div id="ratesList" class="rates-list"></div>
-      <div class="rates-foot" id="ratesFoot"></div>
-    </div>
-  </div>
-
   <div id="list"></div>
   <div id="pager" class="pager"></div>
   <style>
@@ -536,10 +520,10 @@
   .sheet-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .sheet-topbar .sheet-switch{margin-bottom:0}
   .sheet-switch{display:inline-flex;gap:4px;background:#EEF0F3;border-radius:12px;padding:4px;margin-bottom:14px}
-  .rate-monthnav{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 12px}
-  .rmn-btn{border:1px solid var(--line);background:#fff;border-radius:8px;width:32px;height:32px;font-size:16px;color:var(--teal-dark);cursor:pointer;font-weight:700}
-  .rmn-btn:hover{background:var(--teal-soft);border-color:var(--teal)}
-  .rmn-label{font-size:14px;font-weight:800;color:var(--ink);min-width:140px;text-align:center}
+  .rate-rangefilter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--teal-soft);border:1px solid var(--teal-chip);border-radius:11px;padding:8px 12px;margin:4px 0 12px}
+  .rate-rangefilter .df-lbl{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--teal-dark)}
+  .rate-rangefilter input[type=date]{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-family:inherit;font-size:13px}
+  .rate-rangefilter .df-sep{color:var(--slate)}
   table.rate-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
   table.rate-table thead th{background:#F5F8FE;color:var(--slate);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:700;padding:8px 12px;border-bottom:1px solid var(--line)}
   table.rate-table tbody td{padding:8px 12px;border-bottom:1px solid #F0F1F3}
@@ -548,6 +532,23 @@
   .rt-num{display:inline-block;min-width:60px;font-weight:700;color:#2F6BE0;padding:3px 8px;border-radius:6px;cursor:text;outline:none}
   .rt-num:focus{background:#EAF3FF;box-shadow:inset 0 0 0 2px var(--teal)}
   .rt-act{text-align:right;width:50px}
+  /* Pestaña Tasas (panel único) */
+  .tasas-panel{max-width:760px}
+  .tasas-add-card{background:var(--teal-soft);border:1px solid var(--teal-chip);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+  .tasas-card-lbl{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--teal-dark);margin-bottom:12px}
+  .tasas-add-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .tasas-field{display:flex;flex-direction:column;gap:5px}
+  .tasas-field label{font-size:12px;font-weight:700;color:var(--slate)}
+  .tasas-field input{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:14px;min-width:150px}
+  .tasas-field input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+  .tasas-save{background:var(--teal);color:#fff;border:none;border-radius:9px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+  .tasas-save:hover{background:var(--teal-dark)}
+  .tasas-filter-card{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;background:#F7FAFA;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .tasas-filter-card .rate-rangefilter{align-self:flex-start}
+  .tasas-search{flex:1;min-width:220px}
+  .tasas-search input{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:inherit;font-size:13.5px}
+  .tasas-search input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+  .tasas-table-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .ss-btn{border:none;background:none;padding:9px 22px;border-radius:9px;font-size:14px;font-weight:700;color:var(--slate);cursor:pointer;font-family:inherit;transition:all .15s}
   .ss-btn:hover{color:var(--ink)}
   .ss-btn.active{background:#fff;color:var(--magenta-dark);box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -837,26 +838,6 @@
     </div>
   </div>
 
-  <div class="rates" id="excRates">
-    <div class="rates-head" onclick="document.getElementById('excRates').classList.toggle('open')">
-      <svg class="rates-caret" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-      <span class="rates-title">Tasas de cambio por día (USD → DOP)</span>
-      <span class="rates-info">Comparten las mismas tasas que Traslados</span>
-    </div>
-    <div class="rates-body">
-      <div class="rate-add">
-        <input type="date" id="excRateDate">
-        <input type="number" step="0.01" min="0" id="excRateVal" placeholder="Tasa (ej. 58.60)">
-        <button class="chip-btn df-search" onclick="excAddRate()">Guardar tasa</button>
-      </div>
-      <div class="rate-search">
-        <input type="text" id="excRateSearch" placeholder="Buscar por fecha (ej. 13/05 o 2026-05) o valor…" oninput="excRenderRates()">
-      </div>
-      <div id="excRatesList" class="rates-list"></div>
-      <div class="rates-foot" id="excRatesFoot"></div>
-    </div>
-  </div>
-
   <div id="excList"></div>
   <div id="excPager" class="pager"></div>
   </div><!-- /page-excursiones -->
@@ -956,31 +937,6 @@
     </div>
   </div>
 
-  <div class="rates" id="shRates">
-    <div class="rates-head" onclick="document.getElementById('shRates').classList.toggle('open')">
-      <svg class="rates-caret" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-      <span class="rates-title">Tasas de cambio por día (USD → DOP)</span>
-      <span class="rates-info">Si una fecha no tiene tasa, no se calcula el DOP</span>
-    </div>
-    <div class="rates-body">
-      <div class="rate-add">
-        <input type="date" id="shRateDate">
-        <input type="number" step="0.01" min="0" id="shRateVal" placeholder="Tasa (ej. 58.60)">
-        <button class="chip-btn df-search" onclick="shAddRate()">Guardar tasa</button>
-      </div>
-      <div class="rate-search">
-        <input type="text" id="shRateSearch" placeholder="Buscar por fecha (ej. 13/05 o 2026-05) o valor…" oninput="shRenderRates()">
-      </div>
-      <div class="rate-monthnav" id="shRateMonthNav">
-        <button class="rmn-btn" onclick="shRateMonth(-1)">‹</button>
-        <span class="rmn-label" id="shRateMonthLbl"></span>
-        <button class="rmn-btn" onclick="shRateMonth(1)">›</button>
-      </div>
-      <div id="shRatesList" class="rates-list"></div>
-      <div class="rates-foot" id="shRatesFoot"></div>
-    </div>
-  </div>
-
   <div class="sheet-hint">💡 Solo el Link es editable. Clic en el nombre o el monto para copiarlo. Usa las casillas para acciones en lote.</div>
   <div class="bulkbar sh-bulkbar" id="shBulkbar">
     <span class="bulk-count"><b id="shBulkCount">0</b> seleccionadas</span>
@@ -1031,6 +987,55 @@
   <div id="sePager" class="pager"></div>
   </div><!-- /sheetExcSub -->
   </div><!-- /page-sheet -->
+
+  <div class="tabpage" id="page-tasas">
+  <header class="top" style="background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);box-shadow:0 10px 30px rgba(63,191,184,.28)">
+    <div class="exc-head-row">
+      <span class="exc-head-logo" style="background:rgba(255,255,255,.92)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--teal-dark)" stroke-width="2.2" width="26" height="26"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </span>
+      <div>
+        <h1>Tasas de cambio · USD → DOP</h1>
+        <p>Panel único · estas tasas se aplican en todo el sistema (Traslados, Excursiones, Sheet y Reporte)</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="tasas-panel">
+    <div class="tasas-add-card">
+      <span class="tasas-card-lbl">Agregar / actualizar tasa de un día</span>
+      <div class="tasas-add-row">
+        <div class="tasas-field">
+          <label>Fecha</label>
+          <input type="date" id="tzDate">
+        </div>
+        <div class="tasas-field">
+          <label>Tasa (USD → DOP)</label>
+          <input type="number" step="0.01" min="0" id="tzVal" placeholder="ej. 58.60">
+        </div>
+        <button class="tasas-save" onclick="tzAdd()">Guardar tasa</button>
+      </div>
+    </div>
+
+    <div class="tasas-filter-card">
+      <span class="tasas-card-lbl">Actualizar tasa en un rango de fechas</span>
+      <div class="rate-rangefilter" id="tzRange" style="margin:0">
+        <span class="df-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Desde / Hasta</span>
+        <input type="date" id="tzFrom">
+        <span class="df-sep">→</span>
+        <input type="date" id="tzTo">
+        <button class="chip-btn df-search" onclick="tzApplyRange()">Filtrar</button>
+        <button class="chip-btn df-clear" onclick="tzClearRange()">Limpiar</button>
+      </div>
+      <div class="tasas-search">
+        <input type="text" id="tzSearch" placeholder="O busca por fecha (ej. 13/05 o 2026-05) o valor…" oninput="tzRender()">
+      </div>
+    </div>
+
+    <div id="tzList"></div>
+    <div class="rates-foot" id="tzFoot"></div>
+  </div>
+  </div><!-- /page-tasas -->
 
   <footer>DPG · Datos guardados en tu base de datos (Supabase)</footer>
 
@@ -1838,6 +1843,7 @@ function rateChipHtml(iso, delFn){
 }
 function renderRates(){
   const cont=document.getElementById('ratesList');
+  if(!cont) return;
   const foot=document.getElementById('ratesFoot');
   const q=(document.getElementById('rateSearch')||{}).value||'';
   const all=filterRateKeys(q);
@@ -2713,6 +2719,7 @@ function switchTab(t){
   document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active', p.id==='page-'+t));
   if(t==='reporte') repRender();
   if(t==='sheet'){ shSyncUI(); shRenderRates(); shRender(); seSyncUI(); seRender(); }
+  if(t==='tasas'){ tzRender(); }
 }
 
 document.getElementById('excQ').addEventListener('input',e=>{ excQuery=e.target.value; excPage=1; excRender(); });
@@ -3194,39 +3201,39 @@ function shRemoveRate(iso){
   shRenderRates(); shRender();
   dbDelete('tasas','fecha',iso);
 }
-let shRateYM = (function(){ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })(); // mes mostrado
-function shRateMonth(delta){
-  shRateYM.m += delta;
-  if(shRateYM.m<0){ shRateYM.m=11; shRateYM.y--; }
-  if(shRateYM.m>11){ shRateYM.m=0; shRateYM.y++; }
-  shRenderRates();
-}
-const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+// Rango de fechas del panel de tasas (por defecto: mes actual, del día 1 a hoy)
+let shRateFrom=(function(){ const d=new Date(); return localISO(new Date(d.getFullYear(), d.getMonth(), 1)); })();
+let shRateTo=today();
+function shRateApplyRange(){ shRateFrom=document.getElementById('shRateFrom').value; shRateTo=document.getElementById('shRateTo').value; shRenderRates(); }
+function shRateClearRange(){ shRateFrom=''; shRateTo=''; const a=document.getElementById('shRateFrom'),b=document.getElementById('shRateTo'); if(a)a.value=''; if(b)b.value=''; shRenderRates(); }
+function shRateSyncRangeUI(){ const a=document.getElementById('shRateFrom'),b=document.getElementById('shRateTo'); if(a)a.value=shRateFrom||''; if(b)b.value=shRateTo||''; }
 function shRenderRates(){
   const cont=document.getElementById('shRatesList');
   const foot=document.getElementById('shRatesFoot');
-  const lbl=document.getElementById('shRateMonthLbl');
-  const nav=document.getElementById('shRateMonthNav');
+  const range=document.getElementById('shRateRange');
   if(!cont) return;
+  shRateSyncRangeUI();
   const q=(document.getElementById('shRateSearch')||{}).value||'';
-  // Si hay búsqueda, mostramos resultados (lista) y ocultamos navegación por mes
+  // Si hay búsqueda de texto, ignora el rango y busca en todas
   if(q.trim()){
-    if(nav) nav.style.display='none';
+    if(range) range.style.display='none';
     const all=filterRateKeys(q);
     if(!all.length){ cont.innerHTML='<div class="rates-empty">No hay tasas que coincidan con tu búsqueda.</div>'; if(foot)foot.innerHTML=''; return; }
     cont.innerHTML = shRateTableHtml(all);
     if(foot) foot.innerHTML=`<span class="rates-count">${all.length} resultado${all.length!==1?'s':''}</span>`;
     return;
   }
-  if(nav) nav.style.display='flex';
-  if(lbl) lbl.textContent = MESES[shRateYM.m]+' '+shRateYM.y;
-  // tasas del mes mostrado
-  const ymPrefix = `${shRateYM.y}-${String(shRateYM.m+1).padStart(2,'0')}`;
-  const keys = Object.keys(tasas).filter(k=>k.startsWith(ymPrefix)).sort().reverse();
+  if(range) range.style.display='flex';
   if(!Object.keys(tasas).length){ cont.innerHTML='<div class="rates-empty">Aún no has registrado tasas. Sin tasa para la fecha de cobro, el DOP no se calcula.</div>'; if(foot)foot.innerHTML=''; return; }
-  if(!keys.length){ cont.innerHTML='<div class="rates-empty">No hay tasas registradas en '+MESES[shRateYM.m]+' '+shRateYM.y+'.</div>'; if(foot)foot.innerHTML=''; return; }
+  // filtrar por rango (las claves son ISO yyyy-mm-dd, comparables como texto)
+  let keys=Object.keys(tasas).sort().reverse();
+  keys=keys.filter(k=>{ if(shRateFrom && k<shRateFrom) return false; if(shRateTo && k>shRateTo) return false; return true; });
+  if(!keys.length){ cont.innerHTML='<div class="rates-empty">No hay tasas registradas en el rango seleccionado.</div>'; if(foot)foot.innerHTML=`<span class="rates-count">0 de ${Object.keys(tasas).length} en total</span>`; return; }
   cont.innerHTML = shRateTableHtml(keys);
-  if(foot) foot.innerHTML=`<span class="rates-count">${keys.length} tasa${keys.length!==1?'s':''} en ${MESES[shRateYM.m]} ${shRateYM.y} · ${Object.keys(tasas).length} en total</span>`;
+  if(foot){
+    const rangoTxt = (shRateFrom||shRateTo) ? ` en el rango` : '';
+    foot.innerHTML=`<span class="rates-count">${keys.length} tasa${keys.length!==1?'s':''}${rangoTxt} · ${Object.keys(tasas).length} en total</span>`;
+  }
 }
 function shRateTableHtml(keys){
   const filas=keys.map(iso=>`<tr>
@@ -3435,6 +3442,79 @@ document.getElementById('seFilters').addEventListener('click',e=>{
   b.classList.add('active'); seFilter=b.dataset.f; sePage=1; seRender();
 });
 [document.getElementById('seDFrom'),document.getElementById('seDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') seSetRange(); }));
+/* ===================== PESTAÑA TASAS (panel único, afecta todo) ===================== */
+let tzFrom=(function(){ const d=new Date(); return localISO(new Date(d.getFullYear(), d.getMonth(), 1)); })();
+let tzTo=today();
+function tzSyncRangeUI(){ const a=document.getElementById('tzFrom'),b=document.getElementById('tzTo'); if(a)a.value=tzFrom||''; if(b)b.value=tzTo||''; }
+function tzApplyRange(){ tzFrom=document.getElementById('tzFrom').value; tzTo=document.getElementById('tzTo').value; tzRender(); }
+function tzClearRange(){ tzFrom=''; tzTo=''; const a=document.getElementById('tzFrom'),b=document.getElementById('tzTo'); if(a)a.value=''; if(b)b.value=''; tzRender(); }
+async function tzAdd(){
+  const d=document.getElementById('tzDate').value;
+  const v=parseFloat(document.getElementById('tzVal').value);
+  if(!d){ alert('Selecciona una fecha.'); return; }
+  if(!v||v<=0){ alert('Ingresa una tasa válida.'); return; }
+  tasas[d]=Math.round(v*100)/100;
+  document.getElementById('tzVal').value='';
+  save();
+  tzRefreshAll();
+  const ok=await dbUpsert('tasas',[{fecha:d, valor:tasas[d]}]);
+  showCopiedToastMsg(ok?'✓ Tasa guardada':'⚠ No se guardó', !ok);
+}
+async function tzRemove(iso){
+  delete tasas[iso]; save();
+  tzRefreshAll();
+  const ok=await dbDelete('tasas','fecha',iso);
+  showCopiedToastMsg(ok?'✓ Tasa eliminada':'⚠ No se eliminó', !ok);
+}
+async function tzEdit(iso, el){
+  const v=parseFloat(el.textContent.replace(/[^0-9.]/g,''))||0;
+  if(v<=0 || Math.abs(v-Number(tasas[iso]))<0.001){ el.textContent=Number(tasas[iso]).toFixed(2); return; }
+  tasas[iso]=Math.round(v*100)/100; save();
+  tzRefreshAll();
+  const ok=await dbUpsert('tasas',[{fecha:iso, valor:tasas[iso]}]);
+  showCopiedToastMsg(ok?'✓ Tasa actualizada':'⚠ No se guardó', !ok);
+}
+// recalcula todo el sistema cuando cambia una tasa
+function tzRefreshAll(){
+  if(typeof render==='function') render();
+  if(typeof excRender==='function') excRender();
+  if(typeof shRender==='function') shRender();
+  if(typeof seRender==='function') seRender();
+  if(typeof repRender==='function') repRender();
+  tzRender();
+}
+function tzTableHtml(keys){
+  const filas=keys.map(iso=>`<tr>
+    <td class="rt-date">${fmtFecha(iso)}</td>
+    <td class="rt-val"><span class="rt-num" contenteditable="true" onblur="tzEdit('${iso}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${Number(tasas[iso]).toFixed(2)}</span></td>
+    <td class="rt-act"><button class="rate-del" onclick="tzRemove('${iso}')" title="Eliminar">✕</button></td>
+  </tr>`).join('');
+  return `<div class="tasas-table-wrap"><table class="rate-table">
+    <thead><tr><th>Fecha</th><th>Tasa (USD→DOP)</th><th></th></tr></thead>
+    <tbody>${filas}</tbody></table></div>`;
+}
+function tzRender(){
+  const cont=document.getElementById('tzList');
+  const foot=document.getElementById('tzFoot');
+  const range=document.getElementById('tzRange');
+  if(!cont) return;
+  tzSyncRangeUI();
+  const q=(document.getElementById('tzSearch')||{}).value||'';
+  if(q.trim()){
+    if(range) range.style.opacity='.5';
+    const all=filterRateKeys(q);
+    if(!all.length){ cont.innerHTML='<div class="rates-empty">No hay tasas que coincidan con tu búsqueda.</div>'; if(foot)foot.innerHTML=''; return; }
+    cont.innerHTML=tzTableHtml(all);
+    if(foot) foot.innerHTML=`<span class="rates-count">${all.length} resultado${all.length!==1?'s':''}</span>`;
+    return;
+  }
+  if(range) range.style.opacity='1';
+  if(!Object.keys(tasas).length){ cont.innerHTML='<div class="rates-empty">Aún no has registrado tasas. Sin tasa para la fecha de cobro, el DOP no se calcula en ninguna parte del sistema.</div>'; if(foot)foot.innerHTML=''; return; }
+  let keys=Object.keys(tasas).sort().reverse().filter(k=>{ if(tzFrom && k<tzFrom) return false; if(tzTo && k>tzTo) return false; return true; });
+  if(!keys.length){ cont.innerHTML='<div class="rates-empty">No hay tasas registradas en el rango seleccionado.</div>'; if(foot)foot.innerHTML=`<span class="rates-count">0 de ${Object.keys(tasas).length} en total</span>`; return; }
+  cont.innerHTML=tzTableHtml(keys);
+  if(foot) foot.innerHTML=`<span class="rates-count">${keys.length} tasa${keys.length!==1?'s':''} en el rango · ${Object.keys(tasas).length} en total</span>`;
+}
 
 </script>
 </body>
