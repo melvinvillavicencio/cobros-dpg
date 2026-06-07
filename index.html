@@ -357,11 +357,12 @@
   .pg-info b{color:var(--ink)}
   .pg-nav{display:flex;align-items:center;gap:6px}
   .pg-btn{
-    border:1.5px solid var(--line);background:#fff;border-radius:10px;
-    min-width:36px;height:36px;font-size:15px;font-weight:700;color:var(--ink);
-    cursor:pointer;font-family:inherit;transition:all .15s;
+    border:1px solid var(--line);background:#fff;border-radius:8px;
+    min-width:30px;height:30px;font-size:13px;font-weight:600;color:var(--slate);
+    cursor:pointer;font-family:inherit;transition:all .15s;padding:0 6px;
   }
-  .pg-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal-dark)}
+  .pg-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal-dark);background:var(--teal-soft)}
+  .pg-btn.active{background:var(--teal-soft);border-color:var(--teal);color:var(--teal-dark);font-weight:700}
   .pg-btn:disabled{opacity:.4;cursor:default}
   .pg-cur{font-size:13px;font-weight:700;color:var(--ink);padding:0 8px}
   .pg-per{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--slate)}
@@ -431,6 +432,10 @@
     <button class="tab-btn" data-tab="reporte" onclick="switchTab('reporte')">
       <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3v18h18M8 17V9M13 17V5M18 17v-6"/></svg></span>
       Reporte Azul
+    </button>
+    <button class="tab-btn" data-tab="sheet" onclick="switchTab('sheet')">
+      <span class="tab-ic"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></span>
+      Sheet
     </button>
   </div>
 
@@ -526,7 +531,86 @@
   .im-overlay{position:fixed;inset:0;background:rgba(20,20,30,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
   .im-overlay.show{display:flex}
   .im-box{background:#fff;border-radius:16px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
-  /* Overlay de carga inicial */
+  /* ---- Pestaña Sheet (estilo hoja) ---- */
+  .sheet-hint{margin:0 0 10px;font-size:12.5px;color:var(--slate);background:#F0FAF3;border:1px solid #CDEBD6;border-radius:9px;padding:9px 13px}
+  .sheet-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .sheet-topbar .sheet-switch{margin-bottom:0}
+  .sheet-switch{display:inline-flex;gap:4px;background:#EEF0F3;border-radius:12px;padding:4px;margin-bottom:14px}
+  .rate-monthnav{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 12px}
+  .rmn-btn{border:1px solid var(--line);background:#fff;border-radius:8px;width:32px;height:32px;font-size:16px;color:var(--teal-dark);cursor:pointer;font-weight:700}
+  .rmn-btn:hover{background:var(--teal-soft);border-color:var(--teal)}
+  .rmn-label{font-size:14px;font-weight:800;color:var(--ink);min-width:140px;text-align:center}
+  table.rate-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.rate-table thead th{background:#F5F8FE;color:var(--slate);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:700;padding:8px 12px;border-bottom:1px solid var(--line)}
+  table.rate-table tbody td{padding:8px 12px;border-bottom:1px solid #F0F1F3}
+  table.rate-table tbody tr:last-child td{border-bottom:none}
+  .rt-date{font-weight:600;color:var(--ink)}
+  .rt-num{display:inline-block;min-width:60px;font-weight:700;color:#2F6BE0;padding:3px 8px;border-radius:6px;cursor:text;outline:none}
+  .rt-num:focus{background:#EAF3FF;box-shadow:inset 0 0 0 2px var(--teal)}
+  .rt-act{text-align:right;width:50px}
+  .ss-btn{border:none;background:none;padding:9px 22px;border-radius:9px;font-size:14px;font-weight:700;color:var(--slate);cursor:pointer;font-family:inherit;transition:all .15s}
+  .ss-btn:hover{color:var(--ink)}
+  .ss-btn.active{background:#fff;color:var(--magenta-dark);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  #ssExc.active{color:#D98512}
+  .sheet-wrap{overflow-x:auto;overflow-y:visible;border:1px solid var(--line);border-radius:12px;background:#fff}
+  table.sheet{border-collapse:separate;border-spacing:0;width:100%;min-width:920px;font-size:13px}
+  table.sheet thead th{position:sticky;top:0;z-index:2;background:var(--magenta);text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:#fff;font-weight:800;padding:13px 12px;border-bottom:none;white-space:nowrap;line-height:1.25;vertical-align:middle}
+  table.sheet thead th.sh-th-dop{white-space:normal;max-width:90px}
+  table.sheet tbody td{padding:0;border-bottom:1px solid #EEF0F2;border-right:1px solid #F2F3F5;vertical-align:middle}
+  table.sheet tbody tr:hover{background:#FAFBFC}
+  table.sheet tbody td:last-child{border-right:none}
+  .sh-cell{padding:9px 12px;min-height:20px;outline:none;white-space:nowrap}
+  .sh-cell[contenteditable="true"]{cursor:text}
+  .sh-cell[contenteditable="true"]:focus{background:#EAF3FF;box-shadow:inset 0 0 0 2px var(--teal)}
+  .sh-ro{color:var(--ink);background:#FCFCFD}
+  .sh-calc{color:#2F6BE0;font-weight:700;background:#F5F8FE}
+  .sh-num{text-align:right;font-variant-numeric:tabular-nums}
+  .sh-fenix{font-weight:700;color:var(--teal-dark)}
+  .sh-resv{display:block;font-size:10.5px;font-weight:600;color:var(--slate);margin-top:2px}
+  .sh-caret{border:none;background:none;color:var(--teal-dark);font-size:14px;cursor:pointer;padding:0 6px 0 0;transition:transform .15s;display:inline-block}
+  .sh-caret.open{transform:rotate(90deg)}
+  .sh-fenix-num{font-weight:700;color:var(--teal-dark)}
+  .sh-detailrow td{background:#F7FAFA;padding:0!important;border-bottom:1px solid #EEF0F2}
+  .sh-detail{padding:10px 14px 12px}
+  .sh-subtable{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  table.sh-subtable thead th{position:static;background:#EEF3F3;color:var(--slate);text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;font-weight:700;padding:7px 10px;border-bottom:1px solid var(--line)}
+  #sheetExcTable table.sheet thead th{background:#F5A623}
+  #sheetExcTable table.sheet thead th .sh-arrow{color:#fff}
+  .sh-subtable tbody td{padding:7px 10px;border-top:1px solid #F0F1F3;color:var(--ink)}
+  .sh-mod{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px}
+  .sh-mod.in{background:var(--teal-soft);color:var(--teal-dark)}
+  .sh-mod.out{background:#FFF1DC;color:#9A6A00}
+  .sh-sub-monto{font-weight:600;color:#2F6BE0}
+  .sheet-empty{padding:40px;text-align:center;color:var(--slate)}
+  .sh-cur{color:var(--slate);font-weight:600;margin-right:3px}
+  .sh-link{padding:5px 8px;display:flex;align-items:center;gap:6px}
+  .sh-link-input{flex:1;min-width:150px;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px;font-family:inherit;outline:none}
+  .sh-link-input:focus{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+  .sh-open{border:none;background:var(--teal-soft);color:var(--teal-dark);font-weight:700;font-size:12px;padding:7px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit}
+  .sh-open:hover{background:var(--teal-chip)}
+  .sh-dop-lbl{color:var(--slate);font-weight:600;font-size:11px;margin-right:6px;user-select:none}
+  .sh-dop-num{cursor:pointer;font-weight:700;color:#2F6BE0;padding:2px 4px;border-radius:5px}
+  .sh-dop-num:hover{background:#D6E3FB}
+  .sh-dop-num.copied{background:var(--green-soft)!important;color:var(--green)!important}
+  .sh-stcell{padding:6px 10px;display:flex;justify-content:center}
+  .sh-state{border:none;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap;transition:filter .15s}
+  .sh-state:hover{filter:brightness(.96)}
+  .sh-state.pend{background:#FFF1DC;color:#9A6A00}
+  .sh-state.paid{background:#DDF3E4;color:#16A34A}
+  .sh-th{cursor:pointer;user-select:none}
+  .sh-th:hover{background:rgba(0,0,0,.12)}
+  .sh-arrow{font-size:11px;opacity:.6;margin-left:3px;color:#fff}
+  .sh-arrow.on{opacity:1;color:#fff;font-weight:900}
+  .sh-copy{cursor:pointer}
+  .sh-copy:hover{background:#EAF3FF}
+  .sh-cell.copied{background:var(--green-soft)!important;color:var(--green)!important}
+  .sh-name{font-weight:700;color:var(--ink);white-space:normal;line-height:1.3;max-width:200px}
+  .sh-th-ord{width:62px;text-align:center}
+  .sh-ordcell{display:flex;align-items:center;gap:8px;justify-content:center;padding:8px 10px}
+  .sh-ord{font-size:12px;font-weight:700;color:var(--slate);min-width:16px;text-align:right}
+  .sh-chk{width:16px;height:16px;cursor:pointer;accent-color:var(--teal)}
+  tr.sh-selrow{background:#EAF7F6!important}
+  .sh-bulkbar{margin:0 0 12px}
   .loading-overlay{position:fixed;inset:0;background:rgba(247,248,250,.92);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:9500}
   .loading-overlay.show{display:flex}
   .loading-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 50px rgba(0,0,0,.12);padding:34px 40px;text-align:center;max-width:340px}
@@ -585,6 +669,19 @@
   .exc-table tbody tr.paid-row:hover{background:#d6efdd}
   .exc-chk{width:18px;height:18px;accent-color:var(--magenta);cursor:pointer;margin:0}
   .exc-titular{font-weight:700;color:var(--ink)}
+  /* Franja de link como segunda línea de la fila */
+  .exc-table tbody tr.exc-mainrow td{border-bottom:none}
+  .exc-table tbody tr.exc-linkrow td{padding-top:0;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .exc-linkstrip{display:flex;align-items:center;gap:10px;background:var(--teal-soft);border-radius:9px;padding:7px 12px}
+  .exc-linklbl{font-size:11.5px;font-weight:700;color:var(--teal-dark);white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+  .exc-noteslbl{margin-left:6px}
+  .exc-linkrow .exc-linkwrap{flex:2;margin:0}
+  .exc-linkrow .exc-link-input{max-width:none;width:100%}
+  .exc-linkrow .exc-noteswrap{flex:1;margin:0;display:flex;gap:6px}
+  .exc-linkrow .exc-notes-input{max-width:none;width:100%}
+  .exc-titular.copyable{cursor:pointer;display:inline-block;border-radius:5px;padding:1px 4px;margin:-1px -4px}
+  .exc-titular.copyable:hover{background:var(--teal-soft)}
+  .exc-titular.copyable.copied{background:var(--green-soft)!important;color:var(--green)!important}
   .exc-act{font-size:12.5px;color:#6b7080}
   .exc-res{font-weight:700;color:var(--teal-dark);font-variant-numeric:tabular-nums}
   .exc-cobro-input{border:1.5px solid var(--line);border-radius:9px;padding:7px 9px;font-family:inherit;font-size:13px;color:var(--ink);background:#fff}
@@ -627,7 +724,7 @@
   .exc-declsave:hover{filter:brightness(1.08)}
   .exc-declshown{font-size:13px;color:#7A1610;font-style:italic;background:#fff;border-left:3px solid #B42318;padding:6px 11px;border-radius:0 8px 8px 0;width:100%}
   .exc-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-  .exc-table{min-width:1180px}
+  .exc-table{min-width:880px}
   /* Login */
   .login-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#E6F7F6,#F4F1FF);padding:20px}
   .login-card{background:#fff;border-radius:22px;box-shadow:0 20px 60px rgba(31,42,51,.18);padding:36px 32px;width:100%;max-width:380px;text-align:center}
@@ -800,6 +897,140 @@
 
   <div id="repList"></div>
   </div><!-- /page-reporte -->
+
+  <div class="tabpage" id="page-sheet">
+  <header class="top" style="background:linear-gradient(135deg,var(--magenta) 0%,var(--magenta-dark) 100%);box-shadow:0 10px 30px rgba(230,52,98,.28)">
+    <div class="exc-head-row">
+      <span class="exc-head-logo" style="background:rgba(255,255,255,.92)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#E63462" stroke-width="2.2" width="26" height="26"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+      </span>
+      <div>
+        <h1>Sheet · Vista de hoja</h1>
+        <p>Editable como hoja de cálculo · respeta el filtro de fecha de cobro</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="sheet-topbar">
+    <div class="sheet-switch">
+      <button class="ss-btn active" id="ssTras" onclick="sheetSub('tras')">Traslados</button>
+      <button class="ss-btn" id="ssExc" onclick="sheetSub('exc')">Excursiones</button>
+    </div>
+    <div class="data-actions">
+      <button class="act-btn import" onclick="document.getElementById('importFile').click()">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 21h14"/></svg></span>
+        Importar Excel
+      </button>
+      <button class="act-btn export" onclick="sheetExport()">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg></span>
+        Exportar a Sheets
+      </button>
+      <button class="act-btn audit" onclick="document.getElementById('auditFile').click()" title="Sube un Excel con una columna de ID Fénix: esas reservas vuelven a Pendiente y se marcan con nota 'auditoria'">
+        <span class="act-ic"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        Auditoría
+      </button>
+    </div>
+  </div>
+
+  <div id="sheetTraslSub">
+  <div class="toolbar">
+    <div class="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="shQ" placeholder="Buscar por ID Fénix, ID Reserva o titular…">
+    </div>
+    <div class="filters" id="shFilters">
+      <button class="chip-btn" data-f="all">Todas</button>
+      <button class="chip-btn active" data-f="pending">Pendientes</button>
+      <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="nolink">Links pendiente</button>
+    </div>
+    <div class="filterrow">
+    <div class="datefilter">
+      <span class="df-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Fecha de cobro</span>
+      <input type="date" id="shDFrom">
+      <span class="df-sep">→</span>
+      <input type="date" id="shDTo">
+      <button class="chip-btn df-search" onclick="shSetRange()">Buscar</button>
+      <button class="chip-btn df-clear" onclick="shClearRange()">Limpiar</button>
+    </div>
+    </div>
+  </div>
+
+  <div class="rates" id="shRates">
+    <div class="rates-head" onclick="document.getElementById('shRates').classList.toggle('open')">
+      <svg class="rates-caret" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      <span class="rates-title">Tasas de cambio por día (USD → DOP)</span>
+      <span class="rates-info">Si una fecha no tiene tasa, no se calcula el DOP</span>
+    </div>
+    <div class="rates-body">
+      <div class="rate-add">
+        <input type="date" id="shRateDate">
+        <input type="number" step="0.01" min="0" id="shRateVal" placeholder="Tasa (ej. 58.60)">
+        <button class="chip-btn df-search" onclick="shAddRate()">Guardar tasa</button>
+      </div>
+      <div class="rate-search">
+        <input type="text" id="shRateSearch" placeholder="Buscar por fecha (ej. 13/05 o 2026-05) o valor…" oninput="shRenderRates()">
+      </div>
+      <div class="rate-monthnav" id="shRateMonthNav">
+        <button class="rmn-btn" onclick="shRateMonth(-1)">‹</button>
+        <span class="rmn-label" id="shRateMonthLbl"></span>
+        <button class="rmn-btn" onclick="shRateMonth(1)">›</button>
+      </div>
+      <div id="shRatesList" class="rates-list"></div>
+      <div class="rates-foot" id="shRatesFoot"></div>
+    </div>
+  </div>
+
+  <div class="sheet-hint">💡 Solo el Link es editable. Clic en el nombre o el monto para copiarlo. Usa las casillas para acciones en lote.</div>
+  <div class="bulkbar sh-bulkbar" id="shBulkbar">
+    <span class="bulk-count"><b id="shBulkCount">0</b> seleccionadas</span>
+    <div class="bulk-actions">
+      <button class="bulk-btn pay" onclick="shBulkCobrada(true)">Marcar cobradas</button>
+      <button class="bulk-btn unpay" onclick="shBulkCobrada(false)">Marcar pendientes</button>
+      <button class="bulk-btn clear" onclick="shClearSel()">Limpiar selección</button>
+    </div>
+  </div>
+  <div class="sheet-wrap"><div id="sheetTable"></div></div>
+  <div id="shPager" class="pager"></div>
+  </div><!-- /sheetTraslSub -->
+
+  <div id="sheetExcSub" style="display:none">
+  <div class="toolbar">
+    <div class="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="seQ" placeholder="Buscar por ID Reserva, titular o actividad…">
+    </div>
+    <div class="filters" id="seFilters">
+      <button class="chip-btn" data-f="all">Todas</button>
+      <button class="chip-btn active" data-f="pending">Pendientes</button>
+      <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="nolink">Links pendiente</button>
+    </div>
+    <div class="filterrow">
+    <div class="datefilter">
+      <span class="df-lbl"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Fecha de cobro</span>
+      <input type="date" id="seDFrom">
+      <span class="df-sep">→</span>
+      <input type="date" id="seDTo">
+      <button class="chip-btn df-search" onclick="seSetRange()">Buscar</button>
+      <button class="chip-btn df-clear" onclick="seClearRange()">Limpiar</button>
+    </div>
+    </div>
+  </div>
+
+  <div class="sheet-hint">💡 Solo el Link es editable. Clic en el nombre o el monto para copiarlo. Usa las casillas para acciones en lote.</div>
+  <div class="bulkbar sh-bulkbar" id="seBulkbar">
+    <span class="bulk-count"><b id="seBulkCount">0</b> seleccionadas</span>
+    <div class="bulk-actions">
+      <button class="bulk-btn pay" onclick="seBulkCobrada(true)">Marcar cobradas</button>
+      <button class="bulk-btn unpay" onclick="seBulkCobrada(false)">Marcar pendientes</button>
+      <button class="bulk-btn clear" onclick="seClearSel()">Limpiar selección</button>
+    </div>
+  </div>
+  <div class="sheet-wrap"><div id="sheetExcTable"></div></div>
+  <div id="sePager" class="pager"></div>
+  </div><!-- /sheetExcSub -->
+  </div><!-- /page-sheet -->
 
   <footer>DPG · Datos guardados en tu base de datos (Supabase)</footer>
 
@@ -1578,9 +1809,11 @@ function addRate(){
   document.getElementById('rateVal').value='';
   save(); render();
   if(typeof excRender==='function') excRender();
+  if(typeof shRenderRates==='function') shRenderRates();
+  if(typeof shRender==='function') shRender();
   dbUpsert('tasas',[{fecha:d, valor:tasas[d]}]);
 }
-function removeRate(iso){ delete tasas[iso]; save(); render(); if(typeof excRender==='function') excRender(); dbDelete('tasas','fecha',iso); }
+function removeRate(iso){ delete tasas[iso]; save(); render(); if(typeof excRender==='function') excRender(); if(typeof shRenderRates==='function') shRenderRates(); if(typeof shRender==='function') shRender(); dbDelete('tasas','fecha',iso); }
 let ratesShowAll=false, excRatesShowAll=false;
 const RATES_RECENT=12;
 // Filtra y ordena (más reciente primero). q busca en fecha dd/mm/aaaa, ISO, o valor.
@@ -2216,7 +2449,7 @@ function excRender(){
     const linkCell = `<div class="exc-linkwrap">
         <input type="url" class="exc-link-input" id="exclink-${r.reserva}" placeholder="Pega el link…" value="${lnk}" onkeydown="if(event.key==='Enter')excSaveLink('${r.reserva}')" onpaste="setTimeout(()=>excSaveLink('${r.reserva}'),50)" onblur="excSaveLinkIfChanged('${r.reserva}')">
         <button class="exc-link-save" onclick="excSaveLink('${r.reserva}')" title="Guardar link">Guardar</button>
-        ${excLinks[r.reserva]?`<a class="exc-link-open" href="${lnk}" target="_blank" rel="noopener" title="Abrir link de pago"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></a>`:''}
+        ${excLinks[r.reserva]?`<a class="paylink-open" href="${lnk}" target="_blank" rel="noopener" title="Abrir link de pago">Abrir</a>`:''}
       </div>`;
     const declined=!!p.declinada;
     const cancelled=!!p.cancelada;
@@ -2231,17 +2464,15 @@ function excRender(){
     const motivoPill = motivoTxt
       ? `<span class="state-motivo ${cancelled?'cancel':''}" title="${motivoTxt.replace(/"/g,'&quot;')}">${cancelled?'⊘':'✕'} ${motivoTxt.replace(/</g,'&lt;')}</span>`
       : '';
-    const mainRow=`<tr class="${trCls}" data-res="${r.reserva}">
+    const mainRow=`<tr class="${trCls} exc-mainrow" data-res="${r.reserva}">
       <td><input type="checkbox" class="exc-chk" ${excSelected.has(r.reserva)?'checked':''} onclick="excToggleSel('${r.reserva}',this.checked)"></td>
       <td class="exc-ord">${excOrdNum}</td>
       <td class="exc-res">${r.reserva}</td>
-      <td><div class="exc-titular">${r.titular||'—'}</div><div class="exc-act">${r.actividad||''}</div></td>
+      <td><div class="exc-titular copyable" title="Clic para copiar el nombre" data-copy="${(r.titular||'').replace(/"/g,'&quot;')}" onclick="copyFromEl(this)">${r.titular||'—'}</div><div class="exc-act">${r.actividad||''}</div></td>
       <td>${r.fecha||'—'}</td>
       <td class="exc-net">${fmt(r.neta)}</td>
       <td class="exc-dop">${dopCell}</td>
       <td><input type="date" class="exc-cobro-input" value="${p.fecha||''}" onchange="excSetCobro('${r.reserva}',this.value)">${origin}</td>
-      <td>${linkCell}</td>
-      <td>${notesCell}</td>
       <td><div class="state-wrap">
         <button class="state-btn ${est}" onclick="excCycleState('${r.reserva}')" title="Clic para cambiar el estado">
           ${est==='paid'?'✓ Pagado': est==='declined'?'✕ Declinada': est==='cancelled'?'⊘ Cancelada':`<span class="st-dot${(excLinks[r.reserva]&&excLinks[r.reserva].trim())?' link-ok':''}">●</span> Pendiente`}
@@ -2249,6 +2480,13 @@ function excRender(){
         ${motivoPill}
       </div></td>
       <td><button class="del-btn" title="Eliminar esta reserva" onclick="askDelete('excursion','${r.reserva}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></td>
+    </tr>
+    <tr class="${trCls} exc-linkrow" data-res="${r.reserva}">
+      <td></td>
+      <td colspan="9"><div class="exc-linkstrip">
+        <span class="exc-linklbl">🔗 Link</span>${linkCell}
+        <span class="exc-linklbl exc-noteslbl">📝 Notas</span>${notesCell}
+      </div></td>
     </tr>`;
     return mainRow;
   }).join('');
@@ -2256,7 +2494,7 @@ function excRender(){
   list.innerHTML = `<div class="exc-card"><table class="exc-table">
     <thead><tr>
       <th style="width:34px"></th><th style="width:40px">#</th><th>ID Reserva</th><th>Titular / Actividad</th>
-      <th>Fecha actividad</th><th>Valor USD</th><th>Valor DOP</th><th>Fecha de cobro</th><th>Link de pago</th><th>Notas</th><th></th><th></th>
+      <th>Fecha actividad</th><th>Valor USD</th><th>Valor DOP</th><th>Fecha de cobro</th><th></th><th></th>
     </tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
 
   // paginación
@@ -2453,10 +2691,28 @@ function excExportXlsx(){
 }
 
 // Pestañas
+function sheetExport(){
+  const exc=document.getElementById('sheetExcSub');
+  if(exc && exc.style.display!=='none') seExportXlsx(); else shExportXlsx();
+}
+function sheetSub(which){
+  const tras=document.getElementById('sheetTraslSub'), exc=document.getElementById('sheetExcSub');
+  const bt=document.getElementById('ssTras'), be=document.getElementById('ssExc');
+  if(which==='exc'){
+    tras.style.display='none'; exc.style.display='block';
+    bt.classList.remove('active'); be.classList.add('active');
+    seSyncUI(); seRender();
+  }else{
+    exc.style.display='none'; tras.style.display='block';
+    be.classList.remove('active'); bt.classList.add('active');
+    shSyncUI(); shRenderRates(); shRender();
+  }
+}
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===t));
   document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active', p.id==='page-'+t));
   if(t==='reporte') repRender();
+  if(t==='sheet'){ shSyncUI(); shRenderRates(); shRender(); seSyncUI(); seRender(); }
 }
 
 document.getElementById('excQ').addEventListener('input',e=>{ excQuery=e.target.value; excPage=1; excRender(); });
@@ -2639,6 +2895,546 @@ function repExportXlsx(){
 }
 
 [document.getElementById('repDFrom'),document.getElementById('repDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') repSetRange(); }));
+
+/* ===================== SHEET (vista de hoja editable) ===================== */
+let shQuery='', shDFrom=isoDaysAgo(30), shDTo=today();
+let shSortCol='cobro', shSortDir='asc';   // columna y dirección de orden
+let shFilter='pending';                    // chip de estado activo
+let shPerPage=50, shPage=1;                // paginación
+function shSyncUI(){
+  const a=document.getElementById('shDFrom'), b=document.getElementById('shDTo');
+  if(a) a.value=shDFrom||''; if(b) b.value=shDTo||'';
+}
+function shSetRange(){ shDFrom=document.getElementById('shDFrom').value; shDTo=document.getElementById('shDTo').value; shRender(); }
+function shClearRange(){ shDFrom=''; shDTo=''; document.getElementById('shDFrom').value=''; document.getElementById('shDTo').value=''; shRender(); }
+function shInRange(iso){ if(!iso) return false; if(shDFrom && iso<shDFrom) return false; if(shDTo && iso>shDTo) return false; return true; }
+
+// fecha de viaje = la MÁS RECIENTE entre las reservas del Fénix
+function shFechaViaje(g){
+  const toC=(f)=>{ if(!f) return ''; const s=String(f).trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0'); m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+m[2]+m[3]; return s; };
+  let fv='', mejor='';
+  g.rows.forEach(r=>{ if(!r.fecha) return; const c=toC(r.fecha); if(!mejor||c>mejor){ mejor=c; fv=r.fecha; } });
+  return fv;
+}
+// fecha de cobro del grupo (para tomar la tasa)
+function shCobroDate(g){
+  // usa la fecha de cobro de cualquier reserva del grupo (todas comparten)
+  for(const r of g.rows){ const p=pagos[r.reserva]; if(p&&p.fecha) return p.fecha; }
+  return g.cobroAuto||'';
+}
+function shRows(){
+  const filtra = !!(shDFrom||shDTo);
+  let list = GROUPS.filter(g=>{
+    if(!filtra) return true;
+    return g.rows.some(r=>{ const p=pagos[r.reserva]; return p && shInRange(p.fecha); });
+  });
+  if(shQuery){
+    const q=shQuery.toLowerCase();
+    list=list.filter(g=> String(g.fenix).toLowerCase().includes(q) || (g.rows[0].titular||'').toLowerCase().includes(q));
+  }
+  // filtro de estado (chip)
+  if(shFilter!=='all'){
+    list=list.filter(g=>{
+      const pagado=g.rows.length && g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado);
+      if(shFilter==='paid') return pagado;
+      if(shFilter==='pending') return !pagado;
+      if(shFilter==='nolink') return !pagado && !(links[g.fenix] && links[g.fenix].trim());
+      return true;
+    });
+  }
+  // valor para ordenar según la columna activa
+  const toCmpFecha=(f)=>{ if(!f) return ''; const s=String(f).trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0'); m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+m[2]+m[3]; return s; };
+  const val=(g)=>{
+    switch(shSortCol){
+      case 'fenix': return String(g.fenix);
+      case 'fecha': return toCmpFecha(shFechaViaje(g));
+      case 'nombre': return (g.rows[0].titular||'').toLowerCase();
+      case 'dop': { const neta=g.rows.reduce((a,r)=>a+r.neta,0); const t=tasaDe(shCobroDate(g)); return t!=null?neta*t:-1; }
+      case 'estado': return (g.rows.length && g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado))?1:0;
+      case 'cobro': default: return shCobroDate(g)||'';
+    }
+  };
+  list.sort((a,b)=>{
+    const va=val(a), vb=val(b);
+    let c = (typeof va==='number' && typeof vb==='number') ? (va-vb) : String(va).localeCompare(String(vb));
+    return shSortDir==='asc' ? c : -c;
+  });
+  return list;
+}
+function shSort(col){
+  if(shSortCol===col){ shSortDir = shSortDir==='asc' ? 'desc' : 'asc'; }
+  else { shSortCol=col; shSortDir='asc'; }
+  shRender();
+}
+function shArrow(col){
+  if(shSortCol!==col) return '<span class="sh-arrow">↕</span>';
+  return '<span class="sh-arrow on">'+(shSortDir==='asc'?'↑':'↓')+'</span>';
+}
+function shRender(){
+  const cont=document.getElementById('sheetTable'); if(!cont) return;
+  const pager=document.getElementById('shPager');
+  const rows=shRows();
+  if(!rows.length){ cont.innerHTML='<div class="sheet-empty">Sin Fénix en el filtro actual.</div>'; if(pager)pager.innerHTML=''; shUpdateBulk(); return; }
+  // limpiar de la selección los fénix que ya no están visibles
+  const visibles=new Set(rows.map(g=>String(g.fenix)));
+  [...shSel].forEach(f=>{ if(!visibles.has(f)) shSel.delete(f); });
+  // paginación
+  const totalPages = shPerPage==='all'?1:Math.max(1,Math.ceil(rows.length/shPerPage));
+  if(shPage>totalPages) shPage=totalPages; if(shPage<1) shPage=1;
+  const slice = shPerPage==='all'?rows:rows.slice((shPage-1)*shPerPage, shPage*shPerPage);
+  const ordBase = shPerPage==='all'?0:(shPage-1)*shPerPage;
+  const body=slice.map((g,i)=>{
+    const idx=ordBase+i;
+    const fv=shFechaViaje(g);
+    const nombre=g.rows[0].titular||'';
+    const neta=g.rows.reduce((a,r)=>a+r.neta,0);
+    const cobro=shCobroDate(g);
+    const tasa=tasaDe(cobro);
+    const dop = tasa!=null ? Math.round(neta*tasa) : null;
+    const lnk=(links[g.fenix]||'').replace(/"/g,'&quot;');
+    const pagado=g.rows.length && g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado);
+    const sel=shSel.has(String(g.fenix));
+    const exp=shExp.has(String(g.fenix));
+    const caret = `<button class="sh-caret ${exp?'open':''}" onclick="shToggleExp('${g.fenix}')" title="Ver reservas">▸</button>`;
+    const mainRow = `<tr data-fenix="${g.fenix}" data-cobro="${cobro||''}" class="${sel?'sh-selrow':''}">
+      <td><div class="sh-cell sh-ordcell"><span class="sh-ord">${idx+1}</span><input type="checkbox" class="sh-chk" ${sel?'checked':''} onclick="shToggleSel('${g.fenix}')"></div></td>
+      <td><div class="sh-cell sh-ro sh-fenix">${caret}<span class="sh-fenix-num">${g.fenix}</span><span class="sh-resv">${g.rows.length} reserva${g.rows.length>1?'s':''}</span></div></td>
+      <td><div class="sh-cell sh-ro">${fv||''}</div></td>
+      <td><div class="sh-cell sh-copy copyable sh-name" title="Clic para copiar el nombre" data-copy="${nombre.replace(/"/g,'&quot;')}" onclick="copyFromEl(this)">${nombre.replace(/</g,'&lt;')}</div></td>
+      <td><div class="sh-cell sh-num sh-calc"><span class="sh-dop-lbl">DOP</span><span class="sh-dop-num copyable" title="Clic para copiar el monto" data-copy="${dop!=null?dop:''}" onclick="copyFromEl(this)">${dop!=null?dop:'—'}</span></div></td>
+      <td><div class="sh-cell sh-link"><input type="url" class="sh-link-input" value="${lnk}" placeholder="Pega el link (se guarda solo)…" onpaste="setTimeout(()=>shSaveLink(this,'${g.fenix}'),50)" onblur="shSaveLink(this,'${g.fenix}')" onkeydown="if(event.key==='Enter')this.blur()"><button class="sh-open" onclick="shOpenLink('${g.fenix}')" title="Abrir link">Abrir</button></div></td>
+      <td><div class="sh-cell sh-stcell"><button class="sh-state ${pagado?'paid':'pend'}" onclick="shToggleCobrada('${g.fenix}')">${pagado?'● Cobrada':'● Pendiente'}</button></div></td>
+    </tr>`;
+    let detailRow='';
+    if(exp){
+      const ordenadas=[...g.rows].sort((a,b)=>{
+        const rank=m=>m==='IN'?0:(m==='OUT'?1:2);
+        return rank(a.modalidad)-rank(b.modalidad);
+      });
+      const sub=ordenadas.map(r=>{
+        const t2=tasaDe((pagos[r.reserva]||{}).fecha||cobro);
+        const dop2 = t2!=null ? Math.round(r.neta*t2) : null;
+        return `<tr class="sh-sub">
+          <td>${r.reserva}</td>
+          <td>${r.fecha||''}</td>
+          <td><span class="sh-mod ${r.modalidad==='OUT'?'out':'in'}">${r.modalidad||'—'}</span></td>
+          <td class="sh-sub-monto">USD ${r.neta.toFixed(2)}${dop2!=null?` · DOP ${dop2}`:''}</td>
+        </tr>`;
+      }).join('');
+      detailRow = `<tr class="sh-detailrow"><td></td><td colspan="6">
+        <div class="sh-detail">
+          <table class="sh-subtable">
+            <thead><tr><th>ID Reserva</th><th>Fecha</th><th>Modalidad</th><th>Monto</th></tr></thead>
+            <tbody>${sub}</tbody>
+          </table>
+        </div></td></tr>`;
+    }
+    return mainRow + detailRow;
+  }).join('');
+  cont.innerHTML=`<table class="sheet">
+    <thead><tr>
+      <th class="sh-th-ord">#</th>
+      <th class="sh-th" onclick="shSort('fenix')">ID Fénix ${shArrow('fenix')}</th>
+      <th class="sh-th" onclick="shSort('fecha')">Fecha de viaje ${shArrow('fecha')}</th>
+      <th class="sh-th" onclick="shSort('nombre')">Nombre ${shArrow('nombre')}</th>
+      <th class="sh-th sh-th-dop" onclick="shSort('dop')">Monto a<br>cobrar DOP ${shArrow('dop')}</th>
+      <th>Link de pago</th>
+      <th class="sh-th" onclick="shSort('estado')">Estado ${shArrow('estado')}</th>
+    </tr></thead>
+    <tbody>${body}</tbody></table>`;
+  // pager
+  if(pager){
+    let pg='';
+    if(shPerPage!=='all' && totalPages>1){
+      pg+=`<button class="pg-btn" ${shPage===1?'disabled':''} onclick="shGo(${shPage-1})">‹</button>`;
+      for(let i=1;i<=totalPages;i++){
+        if(i===1||i===totalPages||Math.abs(i-shPage)<=1){ pg+=`<button class="pg-btn ${i===shPage?'active':''}" onclick="shGo(${i})">${i}</button>`; }
+        else if(Math.abs(i-shPage)===2){ pg+='<span class="pg-dots">…</span>'; }
+      }
+      pg+=`<button class="pg-btn" ${shPage===totalPages?'disabled':''} onclick="shGo(${shPage+1})">›</button>`;
+    }
+    pager.innerHTML = `<div class="pg-left">${pg}</div><div class="pg-right"><span>Por página:</span>
+      <select onchange="shSetPerPage(this.value)">
+        ${[25,50,100,200].map(n=>`<option value="${n}" ${shPerPage===n?'selected':''}>${n}</option>`).join('')}
+        <option value="all" ${shPerPage==='all'?'selected':''}>Todas</option>
+      </select> <span class="pg-total">${rows.length} Fénix</span></div>`;
+  }
+  shUpdateBulk();
+}
+function shGo(p){ shPage=p; shRender(); }
+function shSetPerPage(v){ shPerPage = v==='all'?'all':parseInt(v,10); shPage=1; shRender(); }
+function shKey(e,el){ if(e.key==='Enter'){ e.preventDefault(); el.blur(); } }
+
+/* Selección múltiple en el Sheet */
+let shSel=new Set();
+let shExp=new Set();   // fénix con detalle desplegado
+function shToggleExp(fenix){
+  fenix=String(fenix);
+  if(shExp.has(fenix)) shExp.delete(fenix); else shExp.add(fenix);
+  shRender();
+}
+function shToggleSel(fenix){
+  fenix=String(fenix);
+  if(shSel.has(fenix)) shSel.delete(fenix); else shSel.add(fenix);
+  // actualizar visual de la fila sin re-render completo
+  const tr=document.querySelector('#sheetTable tr[data-fenix="'+fenix+'"]');
+  if(tr) tr.classList.toggle('sh-selrow', shSel.has(fenix));
+  shUpdateBulk();
+}
+function shUpdateBulk(){
+  const bar=document.getElementById('shBulkbar'); if(!bar) return;
+  const n=shSel.size;
+  bar.classList.toggle('show', n>0);
+  const c=document.getElementById('shBulkCount'); if(c) c.textContent=n;
+}
+function shClearSel(){ shSel.clear(); shRender(); }
+async function shBulkCobrada(estado){
+  if(!shSel.size) return;
+  const trasRows=[], metaRows=[];
+  [...shSel].forEach(fenix=>{
+    const g=GROUPS.find(x=>x.fenix===fenix); if(!g) return;
+    g.rows.forEach(r=>{ pagos[r.reserva]=pagos[r.reserva]||{}; pagos[r.reserva].pagado=estado; trasRows.push(rowTraslado(r.reserva)); });
+    if(estado && meta[fenix]){ meta[fenix].declinada=false; meta[fenix].cancelada=false; }
+    metaRows.push(rowMeta(fenix));
+  });
+  save();
+  let okT=true, okM=true;
+  for(let i=0;i<trasRows.length;i+=500){ const r=await dbUpsert('traslados', trasRows.slice(i,i+500)); if(!r) okT=false; }
+  for(let i=0;i<metaRows.length;i+=500){ const r=await dbUpsert('traslados_meta', metaRows.slice(i,i+500)); if(!r) okM=false; }
+  if(okT&&okM) showCopiedToastMsg(estado?'✓ Marcadas como cobradas':'✓ Marcadas como pendientes'); else showCopiedToastMsg('⚠ Algo no se guardó', true);
+  render(); shRender();
+}
+
+// Guardar LINK desde el Sheet
+async function shSaveLink(inp, fenix){
+  const val=inp.value.trim();
+  const actual=(links[fenix]||'');
+  if(val===actual) return;
+  const prev=links[fenix];
+  if(val) links[fenix]=val; else delete links[fenix];
+  save();
+  const ok=await dbUpsert('traslados_meta',[rowMeta(fenix)]);
+  if(!ok){ if(prev!==undefined) links[fenix]=prev; else delete links[fenix]; save(); showCopiedToastMsg('⚠ No se guardó el link', true); return; }
+  showCopiedToastMsg(val?'✓ Link guardado':'✓ Link eliminado'); render();
+}
+function shOpenLink(fenix){
+  const url=links[fenix];
+  if(!url || !url.trim()){ showCopiedToastMsg('⚠ Esta fila no tiene link', true); return; }
+  let u=url.trim();
+  if(!/^https?:\/\//i.test(u)) u='https://'+u; // por si pegaron sin http
+  window.open(u, '_blank', 'noopener');
+}
+// Alternar Pendiente ↔ Cobrada para todo el grupo
+async function shToggleCobrada(fenix){
+  const g=GROUPS.find(x=>x.fenix===fenix); if(!g) return;
+  const pagado=g.rows.length && g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado);
+  const nuevo=!pagado;
+  g.rows.forEach(r=>{ pagos[r.reserva]=pagos[r.reserva]||{}; pagos[r.reserva].pagado=nuevo; });
+  // al marcar cobrada, quitar declinada/cancelada del grupo
+  if(nuevo && meta[fenix]){ meta[fenix].declinada=false; meta[fenix].cancelada=false; }
+  save();
+  const ok=await dbUpsert('traslados', g.rows.map(r=>rowTraslado(r.reserva)));
+  const ok2=await dbUpsert('traslados_meta',[rowMeta(fenix)]);
+  if(ok&&ok2) showCopiedToastMsg(nuevo?'✓ Marcada como cobrada':'✓ Marcada como pendiente'); else showCopiedToastMsg('⚠ No se guardó', true);
+  render(); shRender();
+}
+
+function shExportXlsx(){
+  const rows=shRows();
+  if(!rows.length){ alert('No hay Fénix en el filtro actual para exportar.'); return; }
+  const out=rows.map(g=>{
+    const neta=g.rows.reduce((a,r)=>a+r.neta,0);
+    const cobro=shCobroDate(g);
+    const tasa=tasaDe(cobro);
+    const pagado=g.rows.length && g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado);
+    return {
+      'ID Fenix':g.fenix,
+      'Fecha de viaje':shFechaViaje(g),
+      'Nombre':g.rows[0].titular||'',
+      'Monto a cobrar DOP':tasa!=null?Math.round(neta*tasa):'',
+      'Link de pago':links[g.fenix]||'',
+      'Estado':pagado?'Cobrada':'Pendiente'
+    };
+  });
+  const ws=XLSX.utils.json_to_sheet(out);
+  ws['!cols']=[{wch:16},{wch:14},{wch:28},{wch:18},{wch:45},{wch:12}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Sheet');
+  XLSX.writeFile(wb,`Sheet_DPG_${today()}.xlsx`);
+}
+document.getElementById('shQ').addEventListener('input',e=>{ shQuery=e.target.value; shRender(); });
+document.getElementById('shFilters').addEventListener('click',e=>{
+  const b=e.target.closest('.chip-btn'); if(!b) return;
+  document.querySelectorAll('#shFilters .chip-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); shFilter=b.dataset.f; shRender();
+});
+[document.getElementById('shDFrom'),document.getElementById('shDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') shSetRange(); }));
+
+/* Tasas de cambio en la pestaña Sheet (mismas tasas globales) */
+let shRatesShowAll=false;
+function shAddRate(){
+  const d=document.getElementById('shRateDate').value;
+  const v=parseFloat(document.getElementById('shRateVal').value);
+  if(!d){ alert('Selecciona una fecha.'); return; }
+  if(!v||v<=0){ alert('Ingresa una tasa válida.'); return; }
+  tasas[d]=Math.round(v*100)/100;
+  document.getElementById('shRateVal').value='';
+  save();
+  if(typeof render==='function') render();
+  if(typeof excRender==='function') excRender();
+  if(typeof renderRates==='function') renderRates();
+  shRenderRates(); shRender();
+  dbUpsert('tasas',[{fecha:d, valor:tasas[d]}]);
+}
+function shRemoveRate(iso){
+  delete tasas[iso]; save();
+  if(typeof render==='function') render();
+  if(typeof excRender==='function') excRender();
+  if(typeof renderRates==='function') renderRates();
+  shRenderRates(); shRender();
+  dbDelete('tasas','fecha',iso);
+}
+let shRateYM = (function(){ const d=new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })(); // mes mostrado
+function shRateMonth(delta){
+  shRateYM.m += delta;
+  if(shRateYM.m<0){ shRateYM.m=11; shRateYM.y--; }
+  if(shRateYM.m>11){ shRateYM.m=0; shRateYM.y++; }
+  shRenderRates();
+}
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function shRenderRates(){
+  const cont=document.getElementById('shRatesList');
+  const foot=document.getElementById('shRatesFoot');
+  const lbl=document.getElementById('shRateMonthLbl');
+  const nav=document.getElementById('shRateMonthNav');
+  if(!cont) return;
+  const q=(document.getElementById('shRateSearch')||{}).value||'';
+  // Si hay búsqueda, mostramos resultados (lista) y ocultamos navegación por mes
+  if(q.trim()){
+    if(nav) nav.style.display='none';
+    const all=filterRateKeys(q);
+    if(!all.length){ cont.innerHTML='<div class="rates-empty">No hay tasas que coincidan con tu búsqueda.</div>'; if(foot)foot.innerHTML=''; return; }
+    cont.innerHTML = shRateTableHtml(all);
+    if(foot) foot.innerHTML=`<span class="rates-count">${all.length} resultado${all.length!==1?'s':''}</span>`;
+    return;
+  }
+  if(nav) nav.style.display='flex';
+  if(lbl) lbl.textContent = MESES[shRateYM.m]+' '+shRateYM.y;
+  // tasas del mes mostrado
+  const ymPrefix = `${shRateYM.y}-${String(shRateYM.m+1).padStart(2,'0')}`;
+  const keys = Object.keys(tasas).filter(k=>k.startsWith(ymPrefix)).sort().reverse();
+  if(!Object.keys(tasas).length){ cont.innerHTML='<div class="rates-empty">Aún no has registrado tasas. Sin tasa para la fecha de cobro, el DOP no se calcula.</div>'; if(foot)foot.innerHTML=''; return; }
+  if(!keys.length){ cont.innerHTML='<div class="rates-empty">No hay tasas registradas en '+MESES[shRateYM.m]+' '+shRateYM.y+'.</div>'; if(foot)foot.innerHTML=''; return; }
+  cont.innerHTML = shRateTableHtml(keys);
+  if(foot) foot.innerHTML=`<span class="rates-count">${keys.length} tasa${keys.length!==1?'s':''} en ${MESES[shRateYM.m]} ${shRateYM.y} · ${Object.keys(tasas).length} en total</span>`;
+}
+function shRateTableHtml(keys){
+  const filas=keys.map(iso=>`<tr>
+    <td class="rt-date">${fmtFecha(iso)}</td>
+    <td class="rt-val"><span class="rt-num" contenteditable="true" onblur="shEditRate('${iso}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${Number(tasas[iso]).toFixed(2)}</span></td>
+    <td class="rt-act"><button class="rate-del" onclick="shRemoveRate('${iso}')" title="Eliminar">✕</button></td>
+  </tr>`).join('');
+  return `<table class="rate-table">
+    <thead><tr><th>Fecha</th><th>Tasa (USD→DOP)</th><th></th></tr></thead>
+    <tbody>${filas}</tbody></table>`;
+}
+async function shEditRate(iso, el){
+  const v=parseFloat(el.textContent.replace(/[^0-9.]/g,''))||0;
+  if(v<=0 || Math.abs(v-Number(tasas[iso]))<0.001){ el.textContent=Number(tasas[iso]).toFixed(2); return; }
+  tasas[iso]=Math.round(v*100)/100; save();
+  if(typeof render==='function') render();
+  if(typeof excRender==='function') excRender();
+  if(typeof renderRates==='function') renderRates();
+  shRender(); if(typeof seRender==='function') seRender();
+  const ok=await dbUpsert('tasas',[{fecha:iso, valor:tasas[iso]}]);
+  showCopiedToastMsg(ok?'✓ Tasa actualizada':'⚠ No se guardó', !ok);
+  shRenderRates();
+}
+/* ===================== SHEET EXCURSIONES (una fila por reserva) ===================== */
+let seQuery='', seDFrom=isoDaysAgo(30), seDTo=today();
+let seSortCol='cobro', seSortDir='asc', seFilter='pending', sePerPage=50, sePage=1;
+let seSel=new Set();
+function seSyncUI(){ const a=document.getElementById('seDFrom'),b=document.getElementById('seDTo'); if(a)a.value=seDFrom||''; if(b)b.value=seDTo||''; }
+function seSetRange(){ seDFrom=document.getElementById('seDFrom').value; seDTo=document.getElementById('seDTo').value; sePage=1; seRender(); }
+function seClearRange(){ seDFrom=''; seDTo=''; document.getElementById('seDFrom').value=''; document.getElementById('seDTo').value=''; sePage=1; seRender(); }
+function seInRange(iso){ if(!iso) return false; if(seDFrom && iso<seDFrom) return false; if(seDTo && iso>seDTo) return false; return true; }
+function seCobroDate(r){ const p=excPagos[r.reserva]; return (p&&p.fecha)?p.fecha:''; }
+function seRows(){
+  const filtra=!!(seDFrom||seDTo);
+  let list=EXC_DATA.filter(r=>{
+    if(!filtra) return true;
+    const p=excPagos[r.reserva]; return p && seInRange(p.fecha);
+  });
+  if(seQuery){
+    const q=seQuery.toLowerCase();
+    list=list.filter(r=> String(r.reserva).toLowerCase().includes(q) || (r.titular||'').toLowerCase().includes(q) || (r.actividad||'').toLowerCase().includes(q));
+  }
+  if(seFilter!=='all'){
+    list=list.filter(r=>{
+      const p=excPagos[r.reserva]||{};
+      if(seFilter==='paid') return !!p.pagado;
+      if(seFilter==='pending') return !p.pagado;
+      if(seFilter==='nolink') return !p.pagado && !(excLinks[r.reserva] && excLinks[r.reserva].trim());
+      return true;
+    });
+  }
+  const toCmpFecha=(f)=>{ if(!f) return ''; const s=String(f).trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m) return m[3]+m[2].padStart(2,'0')+m[1].padStart(2,'0'); m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[1]+m[2]+m[3]; return s; };
+  const val=(r)=>{
+    const p=excPagos[r.reserva]||{};
+    switch(seSortCol){
+      case 'reserva': return String(r.reserva);
+      case 'fecha': return toCmpFecha(r.fecha);
+      case 'nombre': return (r.titular||'').toLowerCase();
+      case 'actividad': return (r.actividad||'').toLowerCase();
+      case 'dop': { const t=tasaDe(p.fecha); return t!=null?r.neta*t:-1; }
+      case 'estado': return p.pagado?1:0;
+      case 'cobro': default: return p.fecha||'';
+    }
+  };
+  list.sort((a,b)=>{ const va=val(a),vb=val(b); let c=(typeof va==='number'&&typeof vb==='number')?(va-vb):String(va).localeCompare(String(vb)); return seSortDir==='asc'?c:-c; });
+  return list;
+}
+function seSort(col){ if(seSortCol===col){ seSortDir=seSortDir==='asc'?'desc':'asc'; } else { seSortCol=col; seSortDir='asc'; } seRender(); }
+function seArrow(col){ if(seSortCol!==col) return '<span class="sh-arrow">↕</span>'; return '<span class="sh-arrow on">'+(seSortDir==='asc'?'↑':'↓')+'</span>'; }
+function seRender(){
+  const cont=document.getElementById('sheetExcTable'); if(!cont) return;
+  const pager=document.getElementById('sePager');
+  const rows=seRows();
+  if(!rows.length){ cont.innerHTML='<div class="sheet-empty">Sin excursiones en el filtro actual.</div>'; if(pager)pager.innerHTML=''; seUpdateBulk(); return; }
+  const visibles=new Set(rows.map(r=>String(r.reserva)));
+  [...seSel].forEach(x=>{ if(!visibles.has(x)) seSel.delete(x); });
+  const totalPages=sePerPage==='all'?1:Math.max(1,Math.ceil(rows.length/sePerPage));
+  if(sePage>totalPages) sePage=totalPages; if(sePage<1) sePage=1;
+  const slice=sePerPage==='all'?rows:rows.slice((sePage-1)*sePerPage, sePage*sePerPage);
+  const ordBase=sePerPage==='all'?0:(sePage-1)*sePerPage;
+  const body=slice.map((r,i)=>{
+    const idx=ordBase+i;
+    const p=excPagos[r.reserva]||{};
+    const tasa=tasaDe(p.fecha);
+    const dop=tasa!=null?Math.round(r.neta*tasa):null;
+    const lnk=(excLinks[r.reserva]||'').replace(/"/g,'&quot;');
+    const pagado=!!p.pagado;
+    const sel=seSel.has(String(r.reserva));
+    const nombre=r.titular||'';
+    const act=r.actividad||'';
+    return `<tr data-res="${r.reserva}" class="${sel?'sh-selrow':''}">
+      <td><div class="sh-cell sh-ordcell"><span class="sh-ord">${idx+1}</span><input type="checkbox" class="sh-chk" ${sel?'checked':''} onclick="seToggleSel('${r.reserva}')"></div></td>
+      <td><div class="sh-cell sh-ro sh-fenix"><span class="sh-fenix-num">${r.reserva}</span></div></td>
+      <td><div class="sh-cell sh-ro">${r.fecha||''}</div></td>
+      <td><div class="sh-cell sh-copy copyable sh-name" title="Clic para copiar el nombre" data-copy="${nombre.replace(/"/g,'&quot;')}" onclick="copyFromEl(this)">${nombre.replace(/</g,'&lt;')}</div></td>
+      <td><div class="sh-cell sh-ro sh-act">${act.replace(/</g,'&lt;')}</div></td>
+      <td><div class="sh-cell sh-num sh-calc"><span class="sh-dop-lbl">DOP</span><span class="sh-dop-num copyable" title="Clic para copiar el monto" data-copy="${dop!=null?dop:''}" onclick="copyFromEl(this)">${dop!=null?dop:'—'}</span></div></td>
+      <td><div class="sh-cell sh-link"><input type="url" class="sh-link-input" value="${lnk}" placeholder="Pega el link (se guarda solo)…" onpaste="setTimeout(()=>seSaveLink(this,'${r.reserva}'),50)" onblur="seSaveLink(this,'${r.reserva}')" onkeydown="if(event.key==='Enter')this.blur()"><button class="sh-open" onclick="seOpenLink('${r.reserva}')" title="Abrir link">Abrir</button></div></td>
+      <td><div class="sh-cell sh-stcell"><button class="sh-state ${pagado?'paid':'pend'}" onclick="seToggleCobrada('${r.reserva}')">${pagado?'● Cobrada':'● Pendiente'}</button></div></td>
+    </tr>`;
+  }).join('');
+  cont.innerHTML=`<table class="sheet">
+    <thead><tr>
+      <th class="sh-th-ord">#</th>
+      <th class="sh-th" onclick="seSort('reserva')">ID Reserva ${seArrow('reserva')}</th>
+      <th class="sh-th" onclick="seSort('fecha')">Fecha ${seArrow('fecha')}</th>
+      <th class="sh-th" onclick="seSort('nombre')">Nombre ${seArrow('nombre')}</th>
+      <th class="sh-th" onclick="seSort('actividad')">Actividad ${seArrow('actividad')}</th>
+      <th class="sh-th sh-th-dop" onclick="seSort('dop')">Monto a<br>cobrar DOP ${seArrow('dop')}</th>
+      <th>Link de pago</th>
+      <th class="sh-th" onclick="seSort('estado')">Estado ${seArrow('estado')}</th>
+    </tr></thead>
+    <tbody>${body}</tbody></table>`;
+  if(pager){
+    let pg='';
+    if(sePerPage!=='all' && totalPages>1){
+      pg+=`<button class="pg-btn" ${sePage===1?'disabled':''} onclick="seGo(${sePage-1})">‹</button>`;
+      for(let i=1;i<=totalPages;i++){
+        if(i===1||i===totalPages||Math.abs(i-sePage)<=1){ pg+=`<button class="pg-btn ${i===sePage?'active':''}" onclick="seGo(${i})">${i}</button>`; }
+        else if(Math.abs(i-sePage)===2){ pg+='<span class="pg-dots">…</span>'; }
+      }
+      pg+=`<button class="pg-btn" ${sePage===totalPages?'disabled':''} onclick="seGo(${sePage+1})">›</button>`;
+    }
+    pager.innerHTML=`<div class="pg-left">${pg}</div><div class="pg-right"><span>Por página:</span>
+      <select onchange="seSetPerPage(this.value)">
+        ${[25,50,100,200].map(n=>`<option value="${n}" ${sePerPage===n?'selected':''}>${n}</option>`).join('')}
+        <option value="all" ${sePerPage==='all'?'selected':''}>Todas</option>
+      </select> <span class="pg-total">${rows.length} reservas</span></div>`;
+  }
+  seUpdateBulk();
+}
+function seGo(p){ sePage=p; seRender(); }
+function seSetPerPage(v){ sePerPage=v==='all'?'all':parseInt(v,10); sePage=1; seRender(); }
+function seToggleSel(res){
+  res=String(res);
+  if(seSel.has(res)) seSel.delete(res); else seSel.add(res);
+  const tr=document.querySelector('#sheetExcTable tr[data-res="'+res+'"]');
+  if(tr) tr.classList.toggle('sh-selrow', seSel.has(res));
+  seUpdateBulk();
+}
+function seUpdateBulk(){ const bar=document.getElementById('seBulkbar'); if(!bar) return; const n=seSel.size; bar.classList.toggle('show', n>0); const c=document.getElementById('seBulkCount'); if(c) c.textContent=n; }
+function seClearSel(){ seSel.clear(); seRender(); }
+async function seBulkCobrada(estado){
+  if(!seSel.size) return;
+  const upd=[];
+  [...seSel].forEach(res=>{ excPagos[res]=excPagos[res]||{}; excPagos[res].pagado=estado; if(estado){ excPagos[res].declinada=false; excPagos[res].cancelada=false; } upd.push(rowExc(res)); });
+  excSave();
+  let ok=true;
+  for(let i=0;i<upd.length;i+=500){ const r=await dbUpsert('excursiones', upd.slice(i,i+500)); if(!r) ok=false; }
+  if(ok) showCopiedToastMsg(estado?'✓ Marcadas como cobradas':'✓ Marcadas como pendientes'); else showCopiedToastMsg('⚠ Algo no se guardó', true);
+  excRender(); seRender();
+}
+async function seSaveLink(inp, res){
+  const val=inp.value.trim();
+  const actual=(excLinks[res]||'');
+  if(val===actual) return;
+  const prev=excLinks[res];
+  if(val) excLinks[res]=val; else delete excLinks[res];
+  excSave();
+  const ok=await dbUpsert('excursiones',[rowExc(res)]);
+  if(!ok){ if(prev!==undefined) excLinks[res]=prev; else delete excLinks[res]; excSave(); showCopiedToastMsg('⚠ No se guardó el link', true); return; }
+  showCopiedToastMsg(val?'✓ Link guardado':'✓ Link eliminado'); excRender();
+}
+function seOpenLink(res){
+  const url=excLinks[res];
+  if(!url||!url.trim()){ showCopiedToastMsg('⚠ Esta fila no tiene link', true); return; }
+  let u=url.trim(); if(!/^https?:\/\//i.test(u)) u='https://'+u;
+  window.open(u,'_blank','noopener');
+}
+async function seToggleCobrada(res){
+  excPagos[res]=excPagos[res]||{};
+  const nuevo=!excPagos[res].pagado;
+  excPagos[res].pagado=nuevo;
+  if(nuevo){ excPagos[res].declinada=false; excPagos[res].cancelada=false; }
+  excSave();
+  const ok=await dbUpsert('excursiones',[rowExc(res)]);
+  if(ok) showCopiedToastMsg(nuevo?'✓ Marcada como cobrada':'✓ Marcada como pendiente'); else showCopiedToastMsg('⚠ No se guardó', true);
+  excRender(); seRender();
+}
+function seExportXlsx(){
+  const rows=seRows();
+  if(!rows.length){ alert('No hay reservas en el filtro actual para exportar.'); return; }
+  const out=rows.map(r=>{
+    const p=excPagos[r.reserva]||{};
+    const tasa=tasaDe(p.fecha);
+    return {
+      'ID Reserva':r.reserva,
+      'Fecha':r.fecha||'',
+      'Nombre':r.titular||'',
+      'Actividad':r.actividad||'',
+      'Monto a cobrar DOP':tasa!=null?Math.round(r.neta*tasa):'',
+      'Link de pago':excLinks[r.reserva]||'',
+      'Estado':p.pagado?'Cobrada':'Pendiente'
+    };
+  });
+  const ws=XLSX.utils.json_to_sheet(out);
+  ws['!cols']=[{wch:12},{wch:13},{wch:26},{wch:24},{wch:18},{wch:45},{wch:12}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Sheet Excursiones');
+  XLSX.writeFile(wb,`Sheet_Excursiones_DPG_${today()}.xlsx`);
+}
+document.getElementById('seQ').addEventListener('input',e=>{ seQuery=e.target.value; sePage=1; seRender(); });
+document.getElementById('seFilters').addEventListener('click',e=>{
+  const b=e.target.closest('.chip-btn'); if(!b) return;
+  document.querySelectorAll('#seFilters .chip-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); seFilter=b.dataset.f; sePage=1; seRender();
+});
+[document.getElementById('seDFrom'),document.getElementById('seDTo')].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') seSetRange(); }));
 
 </script>
 </body>
