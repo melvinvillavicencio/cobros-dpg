@@ -232,6 +232,8 @@
   .state-btn.partial{background:var(--magenta);color:#fff}
   .state-btn.cancelled{background:#6B7280;color:#fff}
   .state-wrap{display:flex;flex-direction:column;align-items:stretch;gap:5px;max-width:150px}
+  .decline-btn{appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;font-family:inherit;font-weight:700;font-size:12px;padding:7px 14px;border-radius:10px;white-space:nowrap;transition:background .12s}
+  .decline-btn:hover{background:#FBE0E0}
   .state-motivo{font-size:11.5px;color:#B42318;background:#FBE0E0;border-radius:8px;padding:3px 9px;font-weight:600;font-style:italic;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
   .state-motivo.cancel{color:#374151;background:#E5E7EB}
   .del-btn{appearance:none;border:1.5px solid #E5A0A0;background:#fff;color:#B42318;cursor:pointer;width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;transition:background .12s}
@@ -469,6 +471,7 @@
       <button class="chip-btn active" data-f="all">Todas</button>
       <button class="chip-btn" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="declined">Declinadas</button>
       <button class="chip-btn" data-f="nolink">Links pendiente</button>
     </div>
     <div class="filterrow">
@@ -653,7 +656,8 @@
   .sh-dop-num{cursor:pointer;font-weight:700;color:#2F6BE0;padding:2px 4px;border-radius:5px}
   .sh-dop-num:hover{background:#D6E3FB}
   .sh-dop-num.copied{background:var(--green-soft)!important;color:var(--green)!important}
-  .sh-stcell{padding:6px 10px;display:flex;justify-content:center}
+  .sh-stcell{padding:6px 10px;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .sh-decline{font-size:11px;padding:5px 11px}
   .sh-state{border:none;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap;transition:filter .15s}
   .sh-state:hover{filter:brightness(.96)}
   .sh-state.pend{background:#FFF1DC;color:#9A6A00}
@@ -863,6 +867,7 @@
       <button class="chip-btn active" data-f="all">Todas</button>
       <button class="chip-btn" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="declined">Declinadas</button>
       <button class="chip-btn" data-f="nolink">Links pendiente</button>
     </div>
     <div class="filterrow">
@@ -983,6 +988,7 @@
       <button class="chip-btn" data-f="all">Todas</button>
       <button class="chip-btn active" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="declined">Declinadas</button>
       <button class="chip-btn" data-f="nolink">Links pendiente</button>
     </div>
     <div class="filterrow">
@@ -1020,6 +1026,7 @@
       <button class="chip-btn" data-f="all">Todas</button>
       <button class="chip-btn active" data-f="pending">Pendientes</button>
       <button class="chip-btn" data-f="paid">Pagadas</button>
+      <button class="chip-btn" data-f="declined">Declinadas</button>
       <button class="chip-btn" data-f="nolink">Links pendiente</button>
     </div>
     <div class="filterrow">
@@ -1705,10 +1712,11 @@ function inRange(d){
 function matches(g){
   const st = rowState(g);
   if(filter==='paid' && st!=='paid') return false;
-  if(filter==='pending' && st==='paid') return false;
+  if(filter==='declined' && st!=='declined') return false;
+  if(filter==='pending' && (st==='paid'||st==='declined'||st==='cancelled')) return false;
   if(filter==='nolink'){
     // pendiente (no pagada) y SIN link de pago guardado
-    if(st==='paid') return false;
+    if(st==='paid'||st==='declined'||st==='cancelled') return false;
     if(links[g.fenix] && links[g.fenix].trim()) return false;
   }
   if(dFrom || dTo){
@@ -1805,6 +1813,7 @@ function render(){
             <button class="state-btn ${st}" onclick="event.stopPropagation();cycleState('${g.fenix}')" title="Clic para cambiar el estado">
               ${st==='paid'?'✓ Pagado': st==='declined'?'✕ Declinada': st==='cancelled'?'⊘ Cancelada': st==='partial'?'◑ Parcial':`<span class="st-dot${(links[g.fenix]&&links[g.fenix].trim())?' link-ok':''}">●</span> Pendiente`}
             </button>
+            ${(st!=='declined'&&st!=='cancelled')?`<button class="decline-btn" onclick="event.stopPropagation();openReasonModal('${g.fenix}','declinada','traslado')" title="Declinar esta reserva">✕ Declinar</button>`:''}
             ${cancelled&&m.comentarioCancel?`<span class="state-motivo cancel" title="${m.comentarioCancel.replace(/"/g,'&quot;')}">⊘ ${m.comentarioCancel.replace(/</g,'&lt;')}</span>`
               :declined&&m.comentario?`<span class="state-motivo" title="${m.comentario.replace(/"/g,'&quot;')}">✕ ${m.comentario.replace(/</g,'&lt;')}</span>`:''}
           </div>
@@ -2050,6 +2059,7 @@ function cycleState(fenix){
 }
 function persistGroupState(fenix){
   save(); render();
+  if(typeof shRender==='function') shRender();
   const g=groups[fenix];
   if(g) dbUpsert('traslados', g.rows.map(r=>rowTraslado(r.reserva)).filter(Boolean));
   dbUpsert('traslados_meta',[rowMeta(fenix)]);
@@ -2089,6 +2099,7 @@ function confirmDeclineModal(){
     document.getElementById('declineModal').classList.remove('show');
     reasonModalKey=null; reasonModalKind=null;
     excSave(); excRender();
+    if(typeof seRender==='function') seRender();
     dbUpsert('excursiones',[rowExc(key)]);
     return;
   }
@@ -2503,9 +2514,10 @@ function excInRange(d){ if(!d) return false; if(excDFrom && d<excDFrom) return f
 function excMatches(r){
   const p=excPagos[r.reserva]||{};
   if(excFilter==='paid' && !p.pagado) return false;
-  if(excFilter==='pending' && p.pagado) return false;
+  if(excFilter==='declined' && !p.declinada) return false;
+  if(excFilter==='pending' && (p.pagado||p.declinada||p.cancelada)) return false;
   if(excFilter==='nolink'){
-    if(p.pagado) return false;
+    if(p.pagado||p.declinada||p.cancelada) return false;
     if(excLinks[r.reserva] && excLinks[r.reserva].trim()) return false;
   }
   if(excDFrom || excDTo){ if(!excInRange(p.fecha)) return false; }
@@ -2610,6 +2622,7 @@ function excRender(){
         <button class="state-btn ${est}" onclick="excCycleState('${r.reserva}')" title="Clic para cambiar el estado">
           ${est==='paid'?'✓ Pagado': est==='declined'?'✕ Declinada': est==='cancelled'?'⊘ Cancelada':`<span class="st-dot${(excLinks[r.reserva]&&excLinks[r.reserva].trim())?' link-ok':''}">●</span> Pendiente`}
         </button>
+        ${(est!=='declined'&&est!=='cancelled')?`<button class="decline-btn" onclick="openReasonModal('${r.reserva}','declinada','excursion')" title="Declinar esta reserva">✕ Declinar</button>`:''}
         ${motivoPill}
       </div></td>
       <td><button class="del-btn" title="Eliminar esta reserva" onclick="askDelete('excursion','${r.reserva}')"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg></button></td>
@@ -3070,9 +3083,12 @@ function shRows(){
   if(shFilter!=='all'){
     list=list.filter(g=>{
       const pagado=g.rows.length && g.rows.every(r=>pagos[r.reserva]&&pagos[r.reserva].pagado);
+      const m=meta[g.fenix]||{};
+      const declinada=!!m.declinada, cancelada=!!m.cancelada;
       if(shFilter==='paid') return pagado;
-      if(shFilter==='pending') return !pagado;
-      if(shFilter==='nolink') return !pagado && !(links[g.fenix] && links[g.fenix].trim());
+      if(shFilter==='declined') return declinada;
+      if(shFilter==='pending') return !pagado && !declinada && !cancelada;
+      if(shFilter==='nolink') return !pagado && !declinada && !cancelada && !(links[g.fenix] && links[g.fenix].trim());
       return true;
     });
   }
@@ -3137,7 +3153,7 @@ function shRender(){
       <td><div class="sh-cell sh-copy copyable sh-name" title="Clic para copiar el nombre" data-copy="${nombre.replace(/"/g,'&quot;')}" onclick="copyFromEl(this)">${nombre.replace(/</g,'&lt;')}</div></td>
       <td><div class="sh-cell sh-num sh-calc"><span class="sh-dop-lbl">DOP</span><span class="sh-dop-num copyable" title="Clic para copiar el monto" data-copy="${dop!=null?dop:''}" onclick="copyFromEl(this)">${dop!=null?dop:'—'}</span></div></td>
       <td><div class="sh-cell sh-link"><input type="url" class="sh-link-input" value="${lnk}" placeholder="Pega el link (se guarda solo)…" onpaste="setTimeout(()=>shSaveLink(this,'${g.fenix}'),50)" onblur="shSaveLink(this,'${g.fenix}')" onkeydown="if(event.key==='Enter')this.blur()"><button class="sh-open" onclick="shOpenLink('${g.fenix}')" title="Abrir link">Abrir</button></div></td>
-      <td><div class="sh-cell sh-stcell"><button class="sh-state ${pagado?'paid':'pend'}" onclick="shToggleCobrada('${g.fenix}')">${pagado?'● Cobrada':'● Pendiente'}</button></div></td>
+      <td><div class="sh-cell sh-stcell"><button class="sh-state ${pagado?'paid':'pend'}" onclick="shToggleCobrada('${g.fenix}')">${pagado?'● Cobrada':'● Pendiente'}</button>${(meta[g.fenix]&&(meta[g.fenix].declinada||meta[g.fenix].cancelada))?'':`<button class="decline-btn sh-decline" onclick="openReasonModal('${g.fenix}','declinada','traslado')" title="Declinar esta reserva">✕ Declinar</button>`}</div></td>
     </tr>`;
     let detailRow='';
     if(exp){
@@ -3407,8 +3423,9 @@ function seRows(){
     list=list.filter(r=>{
       const p=excPagos[r.reserva]||{};
       if(seFilter==='paid') return !!p.pagado;
-      if(seFilter==='pending') return !p.pagado;
-      if(seFilter==='nolink') return !p.pagado && !(excLinks[r.reserva] && excLinks[r.reserva].trim());
+      if(seFilter==='declined') return !!p.declinada;
+      if(seFilter==='pending') return !p.pagado && !p.declinada && !p.cancelada;
+      if(seFilter==='nolink') return !p.pagado && !p.declinada && !p.cancelada && !(excLinks[r.reserva] && excLinks[r.reserva].trim());
       return true;
     });
   }
@@ -3459,7 +3476,7 @@ function seRender(){
       <td><div class="sh-cell sh-ro sh-act">${act.replace(/</g,'&lt;')}</div></td>
       <td><div class="sh-cell sh-num sh-calc"><span class="sh-dop-lbl">DOP</span><span class="sh-dop-num copyable" title="Clic para copiar el monto" data-copy="${dop!=null?dop:''}" onclick="copyFromEl(this)">${dop!=null?dop:'—'}</span></div></td>
       <td><div class="sh-cell sh-link"><input type="url" class="sh-link-input" value="${lnk}" placeholder="Pega el link (se guarda solo)…" onpaste="setTimeout(()=>seSaveLink(this,'${r.reserva}'),50)" onblur="seSaveLink(this,'${r.reserva}')" onkeydown="if(event.key==='Enter')this.blur()"><button class="sh-open" onclick="seOpenLink('${r.reserva}')" title="Abrir link">Abrir</button></div></td>
-      <td><div class="sh-cell sh-stcell"><button class="sh-state ${pagado?'paid':'pend'}" onclick="seToggleCobrada('${r.reserva}')">${pagado?'● Cobrada':'● Pendiente'}</button></div></td>
+      <td><div class="sh-cell sh-stcell"><button class="sh-state ${pagado?'paid':'pend'}" onclick="seToggleCobrada('${r.reserva}')">${pagado?'● Cobrada':'● Pendiente'}</button>${(excPagos[r.reserva]&&(excPagos[r.reserva].declinada||excPagos[r.reserva].cancelada))?'':`<button class="decline-btn sh-decline" onclick="openReasonModal('${r.reserva}','declinada','excursion')" title="Declinar esta reserva">✕ Declinar</button>`}</div></td>
     </tr>`;
   }).join('');
   cont.innerHTML=`<table class="sheet">
